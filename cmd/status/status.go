@@ -56,8 +56,9 @@ var Cmd = &cobra.Command{
 		}
 
 		e, err := apic.EnsureEnv()
+		selectedEnv := ""
 		if err == nil {
-			fn.Log(fmt.Sprint(text.Bold(text.Blue("Environment: ")), e.Name))
+			selectedEnv = e.Name
 		} else if errors.Is(err, fileclient.NoEnvSelected) {
 			filePath := fn.ParseKlFile(cmd)
 			klFile, err := fc.GetKlFile(filePath)
@@ -65,10 +66,47 @@ var Cmd = &cobra.Command{
 				fn.PrintError(err)
 				return
 			}
-			fn.Log(fmt.Sprint(text.Bold(text.Blue("Environment: ")), klFile.DefaultEnv))
+			selectedEnv = klFile.DefaultEnv
 		}
-		fn.Log()
-		fn.Log(text.Bold("Cluster Status"))
+		ev, err := apic.GetEnvironment(data.SelectedTeam, selectedEnv)
+		if err == nil {
+			r := text.Yellow("offline")
+			if ev.ClusterName != "" {
+				if ev.IsArchived {
+					r = text.Yellow("archived")
+				} else {
+					cluster, err := apic.GetCluster(data.SelectedTeam, ev.ClusterName)
+					if err != nil {
+						fn.PrintError(err)
+						return
+					}
+					if time.Since(cluster.LastOnlineAt) < time.Minute {
+						r = text.Green("online")
+					}
+					if ev.Spec.Suspend {
+						r = text.Yellow("suspended")
+					}
+				}
+				fn.Log(text.Bold(text.Blue("Environment: ")), selectedEnv, fmt.Sprintf("(%s)", r))
+			}
+		} else if selectedEnv != "" {
+			fn.Log(text.Bold(text.Blue("Environment: ")), selectedEnv)
+		}
+
+		if envclient.InsideBox() {
+			fn.Log(text.Bold("\nWorkspace Status"))
+			env, _ := fc.CurrentEnv()
+			fn.Log("Current Environment: ", text.Blue(env.Name))
+
+			if connect.ChekcWireguardConnection() {
+				fn.Log("Edge Connection:", text.Green("online"))
+			} else {
+				fn.Log("Edge Connection:", text.Yellow("offline"))
+			}
+			return
+		}
+
+		fn.Log(text.Bold("\nCluster Status"))
 
 		config, err := fc.GetClusterConfig(data.SelectedTeam)
 		if err == nil {
@@ -104,18 +142,6 @@ var Cmd = &cobra.Command{
 				fn.Log(text.Yellow("cluster not found"))
 			} else {
 				fn.PrintError(err)
-			}
-		}
-
-		if envclient.InsideBox() {
-			fn.Log(text.Bold("\nWorkspace Status"))
-			env, _ := fc.CurrentEnv()
-			fn.Log("Current Environment: ", text.Blue(env.Name))
-
-			if connect.ChekcWireguardConnection() {
-				fn.Log("Edge Connection:", text.Green("online"))
-			} else {
-				fn.Log("Edge Connection:", text.Yellow("offline"))
 			}
 		}
 	},

@@ -13,7 +13,6 @@ import (
 	"path"
 	"runtime"
 	"strconv"
-	"strings"
 	"text/template"
 	"time"
 
@@ -138,37 +137,12 @@ func (c *client) ensureImage(i string) error {
 	return nil
 }
 
-func (c *client) restartContainer(path string) error {
+func (c *client) restartContainer() error {
 	defer spinner.Client.UpdateMessage("restart container")()
-
-	existingContainers, err := c.cli.ContainerList(context.Background(), container.ListOptions{
-		Filters: filters.NewArgs(
-			dockerLabelFilter(CONT_MARK_KEY, "true"),
-			dockerLabelFilter(CONT_WORKSPACE_MARK_KEY, "true"),
-			dockerLabelFilter(CONT_PATH_KEY, path),
-		),
-		All: true,
-	})
-	if len(existingContainers) == 0 {
-		return nil
+	cmd := exec.Command("bash", "/kl-tmp/kill-sshd.sh")
+	if err := cmd.Run(); err != nil {
+		return fn.NewE(err, "failed to kill sshd")
 	}
-
-	if err != nil {
-		return fn.NewE(err, "failed to list containers")
-	}
-
-	if err := os.RemoveAll("/tmp/kl"); err != nil {
-		return fn.NewE(err)
-	}
-
-	timeOut := 0
-	if err := c.cli.ContainerRestart(context.Background(), existingContainers[0].ID, container.StopOptions{
-		Signal:  "SIGKILL",
-		Timeout: &timeOut,
-	}); err != nil {
-		return fn.NewE(err)
-	}
-
 	return nil
 }
 
@@ -256,7 +230,8 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 		}
 	}
 
-	clusterConfig, err := c.fc.GetClusterConfig(currentSystemConfig.SelectedTeam)
+	// Error is ignored here because we want to continue even if the cluster config is not found
+	clusterConfig, _ := c.fc.GetClusterConfig(currentSystemConfig.SelectedTeam)
 
 	env := []string{
 		fmt.Sprintf("KL_HASH_FILE=/.cache/kl/box-hash/%s", boxhashFileName),
@@ -295,7 +270,10 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 		ExtraHosts: []string{
 			fmt.Sprintf("k3s-cluster.local:%s", constants.K3sServerIp),
 		},
-		Privileged:  true,
+		Privileged: true,
+		RestartPolicy: container.RestartPolicy{
+			Name: container.RestartPolicyAlways,
+		},
 		NetworkMode: "kloudlite",
 		PortBindings: nat.PortMap{
 			nat.Port(fmt.Sprintf("%d/tcp", sshPort)): []nat.PortBinding{
@@ -321,17 +299,6 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 
 			return resp
 		}(),
-		// Binds: func() []string {
-		// 	binds := make([]string, 0, len(vmounts))
-		// 	for _, m := range vmounts {
-		// 		binds = append(binds, fmt.Sprintf("%s:%s:Z", m.Source, m.Target))
-		// 	}
-		// 	binds = append(binds, fmt.Sprintf("%s:/home/kl/workspace:Z", c.cwd))
-		//
-		// 	fmt.Printf("%#v", binds)
-		//
-		// 	return binds
-		// }(),
 	}, &network.NetworkingConfig{
 		EndpointsConfig: map[string]*network.EndpointSettings{
 			"kloudlite": {
@@ -475,25 +442,9 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 		return nil, fn.NewE(err)
 	}
 
-	sshPath := path.Join(userHomeDir, ".ssh", "id_rsa.pub")
-	//rsaPath := path.Join(userHomeDir, ".ssh", "id_rsa")
 	sshDir := path.Join(userHomeDir, ".ssh")
 
-	akByte, err := os.ReadFile(sshPath)
-	if err != nil {
-		return nil, fn.NewE(err)
-	}
-
-	ak := string(akByte)
-
-	akTmpPath := path.Join(td, "authorized_keys")
-
 	gitConfigPath := path.Join(userHomeDir, ".gitconfig")
-
-	akByte, err = os.ReadFile(path.Join(userHomeDir, ".ssh", "authorized_keys"))
-	if err == nil {
-		ak += fmt.Sprint("\n", string(akByte))
-	}
 
 	// for wsl
 	if err := func() error {
@@ -517,21 +468,10 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 			if _, err := os.Stat(pth); err != nil {
 				continue
 			}
-
-			b, err := os.ReadFile(pth)
-			if err != nil {
-				return fn.NewE(err)
-			}
-
-			ak += fmt.Sprint("\n", string(b))
 		}
 
 		return nil
 	}(); err != nil {
-		return nil, fn.NewE(err)
-	}
-
-	if err := writeOnUserScope(akTmpPath, []byte(ak)); err != nil {
 		return nil, fn.NewE(err)
 	}
 
@@ -542,11 +482,7 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 
 	volumes := []mount.Mount{
 		{Type: mount.TypeVolume, Source: "kl-home-cache", Target: "/home"},
-		//{Type: mount.TypeBind, Source: rsaPath, Target: "/tmp/ssh2/id_rsa", ReadOnly: true},
-		//  NOTE: never change the order of ssh mount
-		{Type: mount.TypeBind, Source: sshDir, Target: "/home/kl/.ssh", ReadOnly: true},
-		{Type: mount.TypeBind, Source: akTmpPath, Target: "/home/kl/.ssh/authorized_keys", ReadOnly: true},
-		//{Type: mount.TypeBind, Source: gitConfigPath, Target: "/tmp/gitconfig/.gitconfig", ReadOnly: true},
+		{Type: mount.TypeBind, Source: sshDir, Target: "/home/kl/.ssh", ReadOnly: false},
 		{Type: mount.TypeVolume, Source: "kl-nix-store", Target: "/nix"},
 		{Type: mount.TypeBind, Source: configFolder, Target: "/.cache/kl"},
 	}
@@ -555,30 +491,26 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 		volumes = append(volumes, mount.Mount{Type: mount.TypeBind, Source: gitConfigPath, Target: "/home/kl/.gitconfig", ReadOnly: true})
 	}
 
-	dockerSock := func() string {
-		if s := os.Getenv("DOCKER_HOST"); s != "" {
-			return s
-		}
+	// dockerSock := func() string {
+	// 	if s := os.Getenv("DOCKER_HOST"); s != "" {
+	// 		return s
+	// 	}
 
-		return "unix:///var/run/docker.sock"
-	}()
+	// 	return "unix:///var/run/docker.sock"
+	// }()
 
-	dockerSockPath := func() string {
-		// extract the path from the docker sock url
-		if strings.HasPrefix(dockerSock, "unix://") {
-			return strings.TrimPrefix(dockerSock, "unix://")
-		}
+	// dockerSockPath := func() string {
+	// 	// extract the path from the docker sock url
+	// 	if strings.HasPrefix(dockerSock, "unix://") {
+	// 		return strings.TrimPrefix(dockerSock, "unix://")
+	// 	}
 
-		return dockerSock
-	}()
+	// 	return dockerSock
+	// }()
 
-	// if runtime.GOOS == constants.RuntimeWindows {
-	// 	dockerSock = "\\\\.\\pipe\\docker_engine"
-	// }
-
-	volumes = append(volumes,
-		mount.Mount{Type: mount.TypeBind, Source: dockerSockPath, Target: "/var/run/host-docker.sock"},
-	)
+	// volumes = append(volumes,
+	// 	mount.Mount{Type: mount.TypeBind, Source: dockerSockPath, Target: "/var/run/host-docker.sock"},
+	// )
 
 	return volumes, nil
 }

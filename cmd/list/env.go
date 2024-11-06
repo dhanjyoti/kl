@@ -2,6 +2,7 @@ package list
 
 import (
 	"github.com/kloudlite/kl/pkg/ui/text"
+	"time"
 
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
@@ -55,15 +56,38 @@ func listEnvironments(cmd *cobra.Command, args []string) error {
 		envName = env.Name
 	}
 
-	header := table.Row{table.HeaderText("Display Name"), table.HeaderText("Name"), table.HeaderText("ready")}
+	header := table.Row{table.HeaderText("Display Name"), table.HeaderText("Name"), table.HeaderText("status")}
 	rows := make([]table.Row, 0)
-
 	for _, a := range envs {
-		rows = append(rows, table.Row{
-			fn.GetPrintRow(a, envName, a.DisplayName, true),
-			fn.GetPrintRow(a, envName, a.Metadata.Name),
-			fn.GetPrintRow(a, envName, a.Status.IsReady),
-		})
+		status := "offline"
+		if a.ClusterName == "" {
+			status = "-"
+			rows = append(rows, table.Row{
+				fn.GetPrintRow(a, envName, a.DisplayName, true),
+				fn.GetPrintRow(a, envName, a.Metadata.Name+" (template)"),
+				fn.GetPrintRow(a, envName, status),
+			})
+		} else {
+			if a.IsArchived {
+				status = "archived"
+			} else {
+				cluster, err := apic.GetCluster(currentTeam, a.ClusterName)
+				if err != nil {
+					return functions.NewE(err)
+				}
+				if time.Since(cluster.LastOnlineAt) < time.Minute {
+					status = "online"
+				}
+				if a.Spec.Suspend {
+					status = "suspended"
+				}
+			}
+			rows = append(rows, table.Row{
+				fn.GetPrintRow(a, envName, a.DisplayName),
+				fn.GetPrintRow(a, envName, a.Metadata.Name),
+				fn.GetPrintRow(a, envName, status),
+			})
+		}
 	}
 
 	fn.Println(table.Table(&header, rows, cmd))
