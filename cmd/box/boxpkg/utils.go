@@ -300,6 +300,12 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 			resp = append(resp, vmounts...)
 
 			resp = append(resp, mount.Mount{
+				Type:   mount.TypeVolume,
+				Source: "ssh-keys", // This volume is where SSH keys are stored
+				Target: "/etc/ssh/keys",
+			})
+
+			resp = append(resp, mount.Mount{
 				Source: c.cwd,
 				Target: "/home/kl/workspace",
 				Type:   mount.TypeBind,
@@ -512,6 +518,8 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 		{Type: mount.TypeBind, Source: akTmpPath, Target: "/kl-tmp/kl-authorized-keys", ReadOnly: false},
 		{Type: mount.TypeVolume, Source: "kl-nix-store", Target: "/nix"},
 		{Type: mount.TypeBind, Source: configFolder, Target: "/.cache/kl"},
+		// Add persistent volume for SSH keys
+		{Type: mount.TypeVolume, Source: "ssh-keys", Target: "/etc/ssh/keys"},
 	}
 	_, err = os.Stat(gitConfigPath)
 	if err == nil {

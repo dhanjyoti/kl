@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1.4
+
 FROM --platform=$TARGETPLATFORM golang:1.21 as builder
 
 COPY --from=project ./go.sum ./go.mod /kl-app/
@@ -70,6 +71,24 @@ COPY ./docker-socket.sh /docker-socket.sh
 RUN mkdir /kl-tmp && chown -R kl:kl /kl-tmp
 
 RUN chmod +x /start.sh /entrypoint.sh /docker-socket.sh
+
+# SSH key persistence logic
+RUN mkdir -p /etc/ssh/keys
+
+COPY ./persisted-keys /etc/ssh/keys/ || true
+
+RUN if [ ! -f /etc/ssh/keys/ssh_host_rsa_key ]; then \
+        ssh-keygen -t rsa -b 4096 -f /etc/ssh/keys/ssh_host_rsa_key -N ""; \
+    fi && \
+    if [ ! -f /etc/ssh/keys/ssh_host_ecdsa_key ]; then \
+        ssh-keygen -t ecdsa -b 521 -f /etc/ssh/keys/ssh_host_ecdsa_key -N ""; \
+    fi && \
+    if [ ! -f /etc/ssh/keys/ssh_host_ed25519_key ]; then \
+        ssh-keygen -t ed25519 -f /etc/ssh/keys/ssh_host_ed25519_key -N ""; \
+    fi
+
+RUN chmod 600 /etc/ssh/keys/ssh_host_* && \
+    chown root:root /etc/ssh/keys/ssh_host_*
 
 COPY --from=builder /kl-app/bin/kl /usr/local/bin/kl
 
