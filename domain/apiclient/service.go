@@ -218,8 +218,7 @@ func (apic *apiClient) InterceptService(service *Service, status bool, ports []S
 	if !status {
 		query = "cli_deleteServiceIntercept"
 	}
-	fmt.Println("interceptTo", devName, "serviceName", service.Spec.ServiceRef.Name, "envName", envName, "ports", ports)
-	return nil
+
 	respData, err := klFetch(query, map[string]any{
 		"serviceName": service.Spec.ServiceRef.Name,
 		"envName":     envName,
