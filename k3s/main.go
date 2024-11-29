@@ -10,7 +10,7 @@ import (
 type K3sClient interface {
 	CreateClustersTeams(name string) error
 	EnsureKloudliteNetwork() error
-	StartAppInterceptService(ports []apiclient.AppPort, toStart bool) error
+	StartAppInterceptService(ports []apiclient.ServicePort, toStart bool) error
 	EnsureImage(i string) error
 	RestartWgProxyContainer() error
 	RemoveAllIntercepts() error

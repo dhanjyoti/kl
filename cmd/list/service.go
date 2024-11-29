@@ -13,9 +13,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var appsCmd = &cobra.Command{
-	Use:   "apps",
-	Short: "Get list of apps in selected environment",
+var serviesCmd = &cobra.Command{
+	Use:   "services",
+	Short: "get list of services in current environment",
 	Run: func(cmd *cobra.Command, args []string) {
 		apic, err := apiclient.New()
 		if err != nil {
@@ -29,14 +29,14 @@ var appsCmd = &cobra.Command{
 			return
 		}
 
-		if err := listapps(apic, fc, cmd, args); err != nil {
+		if err := listServices(apic, fc, cmd, args); err != nil {
 			fn.PrintError(err)
 			return
 		}
 	},
 }
 
-func listapps(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Command, _ []string) error {
+func listServices(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Command, _ []string) error {
 	fc, err := fileclient.New()
 	if err != nil {
 		return functions.NewE(err)
@@ -51,39 +51,40 @@ func listapps(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Com
 		return functions.NewE(err)
 	}
 
-	apps, err := apic.ListApps(currentTeamName, currentEnvName.Name)
+	services, err := apic.ListServices(currentTeamName, currentEnvName.Name)
 	if err != nil {
 		return functions.NewE(err)
 	}
 
-	if len(apps) == 0 {
-		return fn.Errorf("[#] no apps found in environemnt: %s", text.Blue(currentEnvName.Name))
+	if len(services) == 0 {
+		return fn.Errorf("[#] no services found in environemnt: %s", text.Blue(currentEnvName.Name))
 	}
 
 	header := table.Row{
-		table.HeaderText("Display Name"),
-		table.HeaderText("Name"),
-		table.HeaderText("App Port"),
+		table.HeaderText("Service Name"),
+		table.HeaderText("Ip"),
+		table.HeaderText("Port"),
 	}
 
 	rows := make([]table.Row, 0)
 
 	ports := make([]string, 0)
-	for _, a := range apps {
+	for _, a := range services {
 		ports = nil
-		for _, v := range a.Spec.Services {
+		for _, v := range a.Spec.Ports {
 			ports = append(ports, strconv.Itoa(v.Port))
 		}
-		rows = append(rows, table.Row{a.DisplayName, a.Metadata.Name, strings.Join(ports, ", ")})
+
+		rows = append(rows, table.Row{a.Spec.ServiceRef.Name, a.Metadata.Name, strings.Join(ports, ", ")})
 	}
 
 	fn.Println(table.Table(&header, rows, cmd))
 
-	table.KVOutput("apps of environment: ", currentEnvName.Name, true)
-	table.TotalResults(len(apps), true)
+	table.KVOutput("services of environment: ", currentEnvName.Name, true)
+	table.TotalResults(len(services), true)
 	return nil
 }
 
 func init() {
-	appsCmd.Aliases = append(appsCmd.Aliases, "app")
+	serviesCmd.Aliases = append(serviesCmd.Aliases, "service")
 }

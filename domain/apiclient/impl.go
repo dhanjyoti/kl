@@ -13,8 +13,8 @@ type ApiClient interface {
 	ListTeams() ([]Team, error)
 	GetHostDNSSuffix() (string, error)
 
-	ListApps(teamName string, envName string) ([]App, error)
-	InterceptApp(app *App, status bool, ports []AppPort, envName string, options ...fn.Option) (err error)
+	ListServices(teamName string, envName string) ([]Service, error)
+	InterceptService(app *Service, status bool, ports []ServicePort, envName string, options ...fn.Option) (err error)
 
 	CreateRemoteLogin() (loginId string, err error)
 	GetCurrentUser() (*User, error)

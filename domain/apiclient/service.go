@@ -15,52 +15,75 @@ var PaginationDefault = map[string]any{
 	"first":         99999999,
 }
 
-type AppSpec struct {
-	Services []struct {
-		Port int `json:"port"`
-	} `json:"services"`
-	Intercept *struct {
-		Enabled      bool      `json:"enabled"`
-		PortMappings []AppPort `json:"portMappings"`
-	} `json:"intercept"`
+type ServiceSpec struct {
+	GlobalIP string `json:"globalIP"`
+	Hostname string `json:"hostname"`
+	Ports    []struct {
+		AppProtocol string `json:"appProtocol"`
+		Name        string `json:"name"`
+		Port        int    `json:"port"`
+		NodePort    int    `json:"nodePort"`
+		Protocol    string `json:"protocol"`
+		TargetPort  struct {
+			IntVal int    `json:"intVal"`
+			StrVal string `json:"strVal"`
+			Type   int    `json:"type"`
+		} `json:"targetPort"`
+	}
+	ServiceIp  string   `json:"serviceIp"`
+	ServiceRef Metadata `json:"serviceRef"`
+	//Services []struct {
+	//	Port int `json:"port"`
+	//} `json:"services"`
+	//Intercept *struct {
+	//	Enabled      bool          `json:"enabled"`
+	//	PortMappings []ServicePort `json:"portMappings"`
+	//} `json:"intercept"`
 }
 
-type App struct {
-	DisplayName string   `json:"displayName"`
-	Metadata    Metadata `json:"metadata"`
-	Spec        AppSpec  `json:"spec"`
-	Status      Status   `json:"status"`
-	IsMainApp   bool     `json:"mapp"`
+type InterceptStatus struct {
+	Intercepted  bool          `json:"intercepted"`
+	PortMappings []ServicePort `json:"portMappings"`
 }
 
-type AppPort struct {
-	AppPort    int `json:"appPort"`
-	DevicePort int `json:"devicePort,omitempty"`
+type Service struct {
+	//DisplayName string      `json:"displayName"`
+	Metadata        Metadata        `json:"metadata"`
+	InterceptStatus InterceptStatus `json:"interceptStatus"`
+	Spec            ServiceSpec     `json:"spec"`
+	Status          Status          `json:"status"`
+	//IsMainService bool        `json:"mservice"`
 }
 
-func (apic *apiClient) ListApps(teamName string, envName string) ([]App, error) {
+type ServicePort struct {
+	ServicePort   int `json:"servicePort"`
+	ContainerPort int `json:"containerPort,omitempty"`
+}
+
+func (apic *apiClient) ListServices(teamName string, envName string) ([]Service, error) {
 	cookie, err := getCookie(fn.MakeOption("teamName", teamName))
 	if err != nil {
 		return nil, functions.NewE(err)
 	}
-	respData, err := klFetch("cli_listApps", map[string]any{
+
+	respData, err := klFetch("cli_listServices", map[string]any{
 		"pq":      PaginationDefault,
 		"envName": envName,
 	}, &cookie)
 	if err != nil {
 		return nil, functions.NewE(err)
 	}
-	if fromResp, err := GetFromRespForEdge[App](respData); err != nil {
+	if fromResp, err := GetFromRespForEdge[Service](respData); err != nil {
 		return nil, functions.NewE(err)
 	} else {
 		return fromResp, nil
 	}
 }
 
-// func (apic *apiClient) SelectApp(options ...fn.Option) (*App, error) {
+// func (apic *apiClient) SelectApp(options ...fn.Option) (*Service, error) {
 // 	appName := fn.GetOption(options, "appName")
 
-// 	a, err := apic.ListApps(options...)
+// 	a, err := apic.ListServices(options...)
 // 	if err != nil {
 // 		return nil, functions.NewE(err)
 // 	}
@@ -79,15 +102,15 @@ func (apic *apiClient) ListApps(teamName string, envName string) ([]App, error) 
 // 		return nil, fn.Errorf("app not found")
 // 	}
 
-// 	app, err := fzf.FindOne(a, func(item App) string {
+// 	app, err := fzf.FindOne(a, func(item Service) string {
 // 		return fmt.Sprintf("%s (%s)%s", item.DisplayName, item.Metadata.Name, func() string {
-// 			if item.IsMainApp {
+// 			if item.IsMainService {
 // 				return ""
 // 			}
 
 // 			return " [external]"
 // 		}())
-// 	}, fzf.WithPrompt("Select App>"))
+// 	}, fzf.WithPrompt("Select Service>"))
 // 	if err != nil {
 // 		return nil, functions.NewE(err)
 // 	}
@@ -95,7 +118,7 @@ func (apic *apiClient) ListApps(teamName string, envName string) ([]App, error) 
 // 	return app, nil
 // }
 
-// func EnsureApp(envName string, options ...fn.Option) (*App, error) {
+// func EnsureApp(envName string, options ...fn.Option) (*Service, error) {
 
 // 	s, err := SelectApp(envName, options...)
 // 	if err != nil {
@@ -105,7 +128,7 @@ func (apic *apiClient) ListApps(teamName string, envName string) ([]App, error) 
 // 	return s, nil
 // }
 
-func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envName string, options ...fn.Option) error {
+func (apic *apiClient) InterceptService(service *Service, status bool, ports []ServicePort, envName string, options ...fn.Option) error {
 	teamName := fn.GetOption(options, "teamName")
 	devName := fn.GetOption(options, "deviceName")
 
@@ -149,13 +172,14 @@ func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envN
 	}
 
 	if len(ports) == 0 {
-		if app.Spec.Intercept != nil && len(app.Spec.Intercept.PortMappings) != 0 {
-			ports = append(ports, app.Spec.Intercept.PortMappings...)
-		} else if len(app.Spec.Services) != 0 {
-			for _, v := range app.Spec.Services {
-				ports = append(ports, AppPort{
-					AppPort:    v.Port,
-					DevicePort: v.Port,
+		//if service.Spec.Intercept != nil && len(service.Spec.Intercept.PortMappings) != 0 {
+		if service.InterceptStatus.Intercepted {
+			ports = append(ports, service.InterceptStatus.PortMappings...)
+		} else if len(service.Spec.Ports) != 0 {
+			for _, v := range service.Spec.Ports {
+				ports = append(ports, ServicePort{
+					ServicePort:   v.Port,
+					ContainerPort: v.Port,
 				})
 			}
 		}
@@ -171,11 +195,10 @@ func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envN
 	//}
 	//
 	//hostName := os.Getenv("KL_HOST_USER")
-
-	query := "cli_interceptApp"
-	if !app.IsMainApp {
-		query = "cli_interceptExternalApp"
-	}
+	//query := "cli_interceptApp"
+	//if !service.IsMainService {
+	//	query = "cli_interceptExternalApp"
+	//}
 
 	//k3sTracker, err := apic.fc.GetK3sTracker()
 	//if err != nil {
@@ -191,13 +214,19 @@ func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envN
 	//	return fn.Error("k3s server is not ready, please wait")
 	//}
 
+	query := "cli_createServiceIntercept"
+	if !status {
+		query = "cli_deleteServiceIntercept"
+	}
+	fmt.Println("interceptTo", devName, "serviceName", service.Spec.ServiceRef.Name, "envName", envName, "ports", ports)
+	return nil
 	respData, err := klFetch(query, map[string]any{
-		"appName":    app.Metadata.Name,
-		"envName":    envName,
-		"deviceName": devName,
+		"serviceName": service.Spec.ServiceRef.Name,
+		"envName":     envName,
+		"interceptTo": devName,
 		//"ipAddr":       k3sTracker.DeviceRouter.IP,
 		//"clusterName":  fmt.Sprintf("%s-%s", user.Name, hostName),
-		"intercept":    status,
+		//"intercept":    status,
 		"portMappings": ports,
 	}, &cookie)
 	if err != nil {
