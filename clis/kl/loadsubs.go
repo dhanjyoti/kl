@@ -59,13 +59,11 @@ func init() {
 
 	rootCmd.AddCommand(connect.Command)
 
-	if flags.IsDev() {
-		if _, err := exec.LookPath("k9s"); err == nil {
-			rootCmd.AddCommand(kubectl.K9sCmd)
-		}
+	if _, err := exec.LookPath("k9s"); err == nil {
+		rootCmd.AddCommand(kubectl.K9sCmd)
+	}
 
-		if _, err := exec.LookPath("kubectl"); err == nil {
-			rootCmd.AddCommand(kubectl.KubectlCmd)
-		}
+	if _, err := exec.LookPath("kubectl"); err == nil {
+		rootCmd.AddCommand(kubectl.KubectlCmd)
 	}
 }
