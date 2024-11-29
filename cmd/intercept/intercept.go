@@ -18,8 +18,8 @@ import (
 
 var Cmd = &cobra.Command{
 	Use:   "intercept",
-	Short: "intercept app to tunnel trafic to your device",
-	Long:  `use this command to intercept an app to tunnel trafic to your device`,
+	Short: "intercept service to tunnel trafic to your device",
+	Long:  `use this command to intercept an service to tunnel trafic to your device`,
 	Run: func(cmd *cobra.Command, args []string) {
 		apic, err := apiclient.New()
 		if err != nil {
@@ -47,45 +47,45 @@ func startIntercept(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cob
 		return err
 	}
 
-	appsList, err := apic.ListApps(accName, currentEnv.Name)
+	servicesList, err := apic.ListServices(accName, currentEnv.Name)
 	if err != nil {
 		return err
 	}
 
-	type app struct {
-		Name        string         `json:"name"`
-		Port        int            `json:"port"`
-		DisplayName string         `json:"displayName"`
-		App         *apiclient.App `json:"app"`
+	type service struct {
+		Ip       string             `json:"name"`
+		Port     int                `json:"port"`
+		Hostname string             `json:"displayName"`
+		Service  *apiclient.Service `json:"service"`
 	}
 
-	var apps []app
+	var services []service
 
-	for i, _ := range appsList {
-		a := appsList[i]
-		for j, _ := range a.Spec.Services {
-			apps = append(apps, app{
-				Name:        a.Metadata.Name,
-				DisplayName: a.DisplayName,
-				Port:        a.Spec.Services[j].Port,
-				App:         &a,
+	for i, _ := range servicesList {
+		a := servicesList[i]
+		for j, _ := range a.Spec.Ports {
+			services = append(services, service{
+				Ip:       a.Metadata.Name,
+				Hostname: a.Spec.Hostname,
+				Port:     a.Spec.Ports[j].Port,
+				Service:  &a,
 			})
 		}
 	}
 
-	if len(apps) == 0 {
-		return fn.Errorf("no apps found")
+	if len(services) == 0 {
+		return fn.Errorf("no services found")
 	}
 
-	selectedApp, err := fzf.FindOne[app](apps, func(item app) string {
-		return fmt.Sprintf("%s - %s:%d", item.DisplayName, item.Name, item.Port)
-	}, fzf.WithPrompt("Select app to intercept "))
+	selectedService, err := fzf.FindOne[service](services, func(item service) string {
+		return fmt.Sprintf("%s - %s:%d", item.Hostname, item.Ip, item.Port)
+	}, fzf.WithPrompt("Select service to intercept "))
 	if err != nil {
 		return err
 	}
 
 	spinner.Client.Pause()
-	fn.Printf("local port to forward %s: %d -> localhost: ", selectedApp.Name, selectedApp.Port)
+	fn.Printf("local port to forward %s: %d -> localhost: ", selectedService.Service.Spec.ServiceRef.Name, selectedService.Port)
 	devicePortInput, err := bufio.NewReader(os.Stdin).ReadString('\n')
 	if err != nil {
 		fn.PrintError(err)
@@ -94,7 +94,7 @@ func startIntercept(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cob
 	defer spinner.Client.Resume()
 
 	if devicePortInput == "" {
-		devicePortInput = strconv.Itoa(selectedApp.Port)
+		devicePortInput = strconv.Itoa(selectedService.Port)
 	}
 
 	devicePort, err := strconv.Atoi(devicePortInput)
@@ -102,10 +102,10 @@ func startIntercept(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cob
 		fn.PrintError(err)
 	}
 
-	var ports []apiclient.AppPort
-	ports = append(ports, apiclient.AppPort{
-		AppPort:    selectedApp.Port,
-		DevicePort: devicePort,
+	var ports []apiclient.ServicePort
+	ports = append(ports, apiclient.ServicePort{
+		ServicePort:   selectedService.Port,
+		ContainerPort: devicePort,
 	})
 
 	//k3sClient, err := k3s.NewClient()
@@ -116,13 +116,13 @@ func startIntercept(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cob
 	//	return err
 	//}
 
-	if err = apic.InterceptApp(selectedApp.App, true, ports, currentEnv.Name, []fn.Option{
-		fn.MakeOption("appName", selectedApp.Name),
+	if err = apic.InterceptService(selectedService.Service, true, ports, currentEnv.Name, []fn.Option{
+		fn.MakeOption("serviceName", selectedService.Hostname),
 	}...); err != nil {
 		return err
 	}
 
-	fn.Log(text.Green(fmt.Sprintf("intercept app port forwarded to localhost:%v", devicePort)))
+	fn.Log(text.Green(fmt.Sprintf("intercept service port forwarded to localhost:%v", devicePort)))
 	fn.Log("Please check if vpn is connected to your device, if not please connect it using sudo kl vpn start. Ignore this message if already connected.")
 
 	return nil

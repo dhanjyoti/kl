@@ -404,7 +404,7 @@ func (c *client) EnsureKloudliteNetwork() error {
 	return nil
 }
 
-func (c *client) StartAppInterceptService(ports []apiclient.AppPort, toStart bool) error {
+func (c *client) StartAppInterceptService(ports []apiclient.ServicePort, toStart bool) error {
 	defer spinner.Client.UpdateMessage("starting intercept service")()
 	if err := c.EnsureKloudliteNetwork(); err != nil {
 		return fn.NewE(err)
@@ -434,8 +434,8 @@ func (c *client) StartAppInterceptService(ports []apiclient.AppPort, toStart boo
 	processed := make(map[int]struct{})
 
 	for _, p := range ports {
-		processed[p.DevicePort] = struct{}{}
-		if _, ok := spm[p.DevicePort]; ok {
+		processed[p.ContainerPort] = struct{}{}
+		if _, ok := spm[p.ContainerPort]; ok {
 
 			if toStart {
 				return fmt.Errorf("port, already occupied by another intercept")
@@ -445,16 +445,16 @@ func (c *client) StartAppInterceptService(ports []apiclient.AppPort, toStart boo
 
 		newPorts = append(newPorts,
 			fileclient.Port{
-				Name:       fmt.Sprintf("udp-%d", p.AppPort),
-				Port:       p.DevicePort,
+				Name:       fmt.Sprintf("udp-%d", p.ServicePort),
+				Port:       p.ContainerPort,
 				Protocol:   "UDP",
-				TargetPort: p.DevicePort,
+				TargetPort: p.ContainerPort,
 			},
 			fileclient.Port{
-				Name:       fmt.Sprintf("tcp-%d", p.AppPort),
-				Port:       p.DevicePort,
+				Name:       fmt.Sprintf("tcp-%d", p.ServicePort),
+				Port:       p.ContainerPort,
 				Protocol:   "TCP",
-				TargetPort: p.DevicePort,
+				TargetPort: p.ContainerPort,
 			},
 		)
 	}

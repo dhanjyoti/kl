@@ -406,7 +406,7 @@ func (c *client) stopContainer(path string) error {
 }
 
 func (c *client) getFreePort() (int, error) {
-	if c.env.SSHPort != 0 {
+	if c.env != nil && c.env.SSHPort != 0 {
 		return c.env.SSHPort, nil
 	}
 
