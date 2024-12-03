@@ -20,7 +20,6 @@ import (
 var rootCmd = &cobra.Command{
 	Use: flags.CliName,
 	PersistentPreRun: func(cmd *cobra.Command, _ []string) {
-
 		// u := updater.NewUpdater()
 		// b, err := u.CheckForUpdates()
 		// if err != nil {

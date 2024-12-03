@@ -18,6 +18,7 @@ import (
 	"github.com/kloudlite/kl/cmd/runner"
 	"github.com/kloudlite/kl/cmd/runner/add"
 	set_base_url "github.com/kloudlite/kl/cmd/set-base-url"
+	"github.com/kloudlite/kl/cmd/shell"
 	"github.com/kloudlite/kl/cmd/status"
 	"github.com/kloudlite/kl/cmd/use"
 	"github.com/kloudlite/kl/flags"
@@ -58,6 +59,7 @@ func init() {
 	rootCmd.AddCommand(packages.LibCmd)
 
 	rootCmd.AddCommand(connect.Command)
+	rootCmd.AddCommand(shell.Command)
 
 	if flags.IsDev() {
 		if _, err := exec.LookPath("k9s"); err == nil {
