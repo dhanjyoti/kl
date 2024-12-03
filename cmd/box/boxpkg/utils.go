@@ -493,7 +493,7 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 
 	akTmpPath := path.Join(td, "kl-authorized-keys")
 
-	if err := os.MkdirAll(akTmpPath, 0755); err != nil {
+	if err := os.MkdirAll(akTmpPath, 0o755); err != nil {
 		return nil, fn.NewE(err)
 	}
 

@@ -75,8 +75,10 @@ type Kv struct {
 	Value string `json:"value"`
 }
 
-type CSResp map[string]map[string]*Kv
-type MountMap map[string]string
+type (
+	CSResp   map[string]map[string]*Kv
+	MountMap map[string]string
+)
 
 func (apic *apiClient) GetLoadMaps() (map[string]string, MountMap, error) {
 	fc := apic.fc
@@ -94,7 +96,6 @@ func (apic *apiClient) GetLoadMaps() (map[string]string, MountMap, error) {
 	cookie, err := getCookie([]functions.Option{
 		functions.MakeOption("teamName", kt.TeamName),
 	}...)
-
 	if err != nil {
 		return nil, nil, functions.NewE(err)
 	}
@@ -166,14 +167,11 @@ func (apic *apiClient) GetLoadMaps() (map[string]string, MountMap, error) {
 			return queries
 		}(),
 	}, &cookie)
-
 	if err != nil {
 		return nil, nil, functions.NewE(err)
-
 	}
 
 	fromResp, err := GetFromResp[EnvRsp](respData)
-
 	if err != nil {
 		return nil, nil, functions.NewE(err)
 	}

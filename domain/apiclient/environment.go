@@ -62,7 +62,6 @@ var NoDefaultEnvError = fn.Error("please initialize kl.yml by running `kl init` 
 // }
 
 func (apic *apiClient) ListEnvs(teamName string) ([]Env, error) {
-
 	cookie, err := getCookie(fn.MakeOption("teamName", teamName))
 	if err != nil {
 		return nil, functions.NewE(err)
@@ -75,7 +74,6 @@ func (apic *apiClient) ListEnvs(teamName string) ([]Env, error) {
 			"first":         99999999,
 		},
 	}, &cookie)
-
 	if err != nil {
 		return nil, functions.NewE(err)
 	}
@@ -95,7 +93,6 @@ func (apic *apiClient) GetEnvironment(teamName, envName string) (*Env, error) {
 	respData, err := klFetch("cli_getEnvironment", map[string]any{
 		"name": envName,
 	}, &cookie)
-
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +181,6 @@ func (apic *apiClient) CloneEnv(teamName, envName, newEnvName, clusterName strin
 		"displayName":            newEnvName,
 		"environmentRoutingMode": PublicEnvRoutingMode,
 	}, &cookie)
-
 	if err != nil {
 		return nil, functions.NewE(err)
 	}

@@ -213,7 +213,6 @@ func GetExtraData() (*ExtraData, error) {
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			b, err := yaml.Marshal(extraData)
-
 			if err != nil {
 				return nil, functions.NewE(err, "failed to marshal extra data")
 			}
@@ -249,7 +248,6 @@ func (fc *fclient) GetDevice() (*DeviceContext, error) {
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			b, err := yaml.Marshal(device)
-
 			if err != nil {
 				return nil, functions.NewE(err, "failed to marshal device context")
 			}
@@ -280,7 +278,6 @@ func GenerateWireGuardKeys() (wgtypes.Key, wgtypes.Key, error) {
 }
 
 func (c *fclient) GetHostWgConfig() (string, error) {
-
 	config, err := c.GetWGConfig()
 	if err != nil {
 		return "", fn.NewE(err, "failed to get wg config")
@@ -300,7 +297,6 @@ Endpoint = %s:33820
 }
 
 func (fc *fclient) SetWGConfig(config string) error {
-
 	if err := writeOnUserScope("kl-host-wg.conf", []byte(config)); err != nil {
 		return fn.NewE(err, "failed to write wg config")
 	}
@@ -395,7 +391,6 @@ func (fc *fclient) GetK3sTracker() (*K3sTracker, error) {
 }
 
 func GetCookieString(options ...fn.Option) (string, error) {
-
 	accName := fn.GetOption(options, "teamName")
 
 	session, err := GetAuthSession()
@@ -463,7 +458,7 @@ func writeOnUserScope(name string, data []byte) error {
 
 	filePath := path.Join(dir, name)
 
-	if err := os.WriteFile(filePath, data, 0644); err != nil {
+	if err := os.WriteFile(filePath, data, 0o644); err != nil {
 		return functions.NewE(err, "failed to write file")
 	}
 
@@ -491,7 +486,6 @@ func ReadFile(name string) ([]byte, error) {
 	}
 
 	file, err := os.ReadFile(filePath)
-
 	if err != nil {
 		return nil, functions.NewE(err, "failed to read file")
 	}

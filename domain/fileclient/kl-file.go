@@ -44,7 +44,7 @@ func getConfigPath() string {
 }
 
 func (c *fclient) WriteKLFile(fileObj KLFileType) error {
-	if err := confighandler.WriteConfig(getConfigPath(), fileObj, 0644); err != nil {
+	if err := confighandler.WriteConfig(getConfigPath(), fileObj, 0o644); err != nil {
 		fn.PrintError(err)
 		return functions.NewE(err)
 	}

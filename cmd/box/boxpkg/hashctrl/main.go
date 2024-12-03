@@ -67,7 +67,6 @@ func generateBoxHashContent(apic apiclient.ApiClient, fc fileclient.FileClient, 
 		"config": persistedConfig,
 		"hash":   hsh,
 	})
-
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -157,11 +156,11 @@ func SyncBoxHash(apic apiclient.ApiClient, fc fileclient.FileClient, fpath strin
 		return fn.NewE(err)
 	}
 
-	if err = os.MkdirAll(path.Join(configFolder, "box-hash"), 0755); err != nil {
+	if err = os.MkdirAll(path.Join(configFolder, "box-hash"), 0o755); err != nil {
 		return fn.NewE(err)
 	}
 
-	if err = os.WriteFile(path.Join(configFolder, "box-hash", boxHashFilePath), content, 0644); err != nil {
+	if err = os.WriteFile(path.Join(configFolder, "box-hash", boxHashFilePath), content, 0o644); err != nil {
 		return fn.NewE(err)
 	}
 

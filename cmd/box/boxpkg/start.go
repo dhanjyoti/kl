@@ -56,6 +56,7 @@ func (c *client) Start() error {
 			}
 		}
 	}
+
 	if boxHash == nil {
 		boxHash, err = hashctrl.BoxHashFile(c.cwd)
 		if err != nil {
