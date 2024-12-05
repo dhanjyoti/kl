@@ -22,7 +22,6 @@ var InitCommand = &cobra.Command{
 	Short: "initialize a kl-config file",
 	Long:  `use this command to initialize a kl-config file`,
 	Run: func(cmd *cobra.Command, args []string) {
-
 		fc, err := fileclient.New()
 		if err != nil {
 			fn.PrintError(err)
@@ -92,7 +91,6 @@ var InitCommand = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-
 	},
 }
 

@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/kloudlite/kl/pkg/ui/fzf"
-	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
@@ -82,7 +83,6 @@ func Resolve(ctx context.Context, pname string) (string, string, error) {
 		pkg, err := fzf.FindOne(sr.Packages, func(item Package) string {
 			return item.Name
 		}, fzf.WithPrompt("select a package"))
-
 		if err != nil {
 			return "", "", fn.NewE(err)
 		}
@@ -90,7 +90,6 @@ func Resolve(ctx context.Context, pname string) (string, string, error) {
 		version, err := fzf.FindOne(pkg.Versions, func(item PackageVersion) string {
 			return fmt.Sprintf("%s %s", item.Version, item.Summary)
 		}, fzf.WithPrompt("select a version"))
-
 		if err != nil {
 			return "", "", fn.NewE(err)
 		}
@@ -118,7 +117,6 @@ func Resolve(ctx context.Context, pname string) (string, string, error) {
 
 	platform := os.Getenv("PLATFORM_ARCH") + "-linux"
 	sr, err := caller[Res](ctx, fmt.Sprintf("%s/v1/resolve?name=%s&version=%s&platform=%s", searchAPIEndpoint, name, v, platform))
-
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return "", "", fn.Errorf("package %s not found", name)
@@ -142,7 +140,6 @@ func caller[T any](ctx context.Context, url string) (*T, error) {
 	}
 	defer response.Body.Close()
 	data, err := io.ReadAll(response.Body)
-
 	if err != nil {
 		return nil, fn.Errorf("GET %s: read respoonse body: %w", url, err)
 	}

@@ -2,6 +2,9 @@ package packages
 
 import (
 	"fmt"
+	"os"
+	"slices"
+
 	"github.com/kloudlite/kl/cmd/box/boxpkg"
 	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/apiclient"
@@ -9,8 +12,6 @@ import (
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
-	"os"
-	"slices"
 
 	"github.com/spf13/cobra"
 )

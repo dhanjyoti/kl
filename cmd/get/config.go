@@ -2,6 +2,7 @@ package get
 
 import (
 	"encoding/json"
+
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 
@@ -19,7 +20,6 @@ var configCmd = &cobra.Command{
 	Short: "list config entries",
 	Long:  "use this command to list entries of specific config",
 	Run: func(cmd *cobra.Command, args []string) {
-
 		apic, err := apiclient.New()
 		if err != nil {
 			fn.PrintError(err)

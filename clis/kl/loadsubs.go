@@ -18,9 +18,12 @@ import (
 	"github.com/kloudlite/kl/cmd/runner"
 	"github.com/kloudlite/kl/cmd/runner/add"
 	set_base_url "github.com/kloudlite/kl/cmd/set-base-url"
-	"github.com/kloudlite/kl/cmd/shell"
 	"github.com/kloudlite/kl/cmd/status"
 	"github.com/kloudlite/kl/cmd/use"
+	v2Add "github.com/kloudlite/kl/cmd/v2/add"
+	v2Lib "github.com/kloudlite/kl/cmd/v2/lib"
+	v2Pkg "github.com/kloudlite/kl/cmd/v2/pkg"
+	v2Shell "github.com/kloudlite/kl/cmd/v2/shell"
 	"github.com/kloudlite/kl/flags"
 	"github.com/spf13/cobra"
 )
@@ -59,7 +62,10 @@ func init() {
 	rootCmd.AddCommand(packages.LibCmd)
 
 	rootCmd.AddCommand(connect.Command)
-	rootCmd.AddCommand(shell.Command)
+	rootCmd.AddCommand(v2Shell.Command)
+	rootCmd.AddCommand(v2Add.Command)
+	rootCmd.AddCommand(v2Pkg.Command)
+	rootCmd.AddCommand(v2Lib.Command)
 
 	if flags.IsDev() {
 		if _, err := exec.LookPath("k9s"); err == nil {
