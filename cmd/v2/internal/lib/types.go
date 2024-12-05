@@ -14,16 +14,19 @@ import (
 type KLConfig struct {
 	ConfigFile string `json:"-"`
 
-	Version      string         `json:"version" yaml:"version"`
-	DefaultEnv   string         `json:"defaultEnv,omitempty" yaml:"defaultEnv,omitempty"`
-	TeamName     string         `json:"teamName,omitempty" yaml:"teamName,omitempty"`
-	Packages     []string       `json:"packages" yaml:"packages"`
+	Version    string `json:"version" yaml:"version"`
+	DefaultEnv string `json:"defaultEnv,omitempty" yaml:"defaultEnv,omitempty"`
+	TeamName   string `json:"teamName,omitempty" yaml:"teamName,omitempty"`
+
+	Packages  []string `json:"packages" yaml:"packages"`
+	Libraries []string `json:"libraries" yaml:"libraries"`
+
+	EnvVars EnvVars `json:"envVars" yaml:"envVars"`
+	Mounts  Mounts  `json:"mounts" yaml:"mounts"`
+	Ports   []int   `json:"ports" yaml:"ports"`
+
 	packagesMap  map[string]int `json:"-"`
-	Libraries    []string       `json:"libraries" yaml:"libraries"`
 	librariesMap map[string]int `json:"-"`
-	EnvVars      EnvVars        `json:"envVars" yaml:"envVars"`
-	Mounts       Mounts         `json:"mounts" yaml:"mounts"`
-	Ports        []int          `json:"ports" yaml:"ports"`
 }
 
 var klCfgTemplate *template.Template

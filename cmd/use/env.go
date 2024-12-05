@@ -2,10 +2,7 @@ package use
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
@@ -42,7 +39,7 @@ func switchEnv(cmd *cobra.Command, args []string) error {
 	//TODO: add changes to the klbox-hash file
 	// envName := fn.ParseStringFlag(cmd, "envname")
 
-	klFile, err := fc.GetKlFile("")
+	klFile, err := fc.GetKlFile()
 	if err != nil {
 		return err
 	}
@@ -61,23 +58,6 @@ func switchEnv(cmd *cobra.Command, args []string) error {
 	fn.Log(text.Bold(text.Green("\nSelected Environment:")),
 		text.Blue(fmt.Sprintf("\n%s (%s)", env.DisplayName, env.Metadata.Name)),
 	)
-
-	wpath, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	if err := hashctrl.SyncBoxHash(apic, fc, wpath); err != nil {
-		return err
-	}
-
-	c, err := boxpkg.NewClient(cmd, nil)
-	if err != nil {
-		return err
-	}
-
-	if err := c.ConfirmBoxRestart(); err != nil {
-		return err
-	}
 
 	return nil
 }

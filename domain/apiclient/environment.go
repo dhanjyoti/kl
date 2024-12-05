@@ -111,7 +111,7 @@ func (apic *apiClient) EnsureEnv() (*fileclient.Env, error) {
 	} else if err == nil {
 		return CurrentEnv, nil
 	}
-	kt, err := apic.fc.GetKlFile("")
+	kt, err := apic.fc.GetKlFile()
 	if err != nil {
 		return nil, functions.NewE(err)
 	}
@@ -151,7 +151,7 @@ func (apic *apiClient) EnsureEnv() (*fileclient.Env, error) {
 // 		return env, nil
 // 	}
 
-// 	kl, err := fc.GetKlFile("")
+// 	kl, err := fc.GetKlFile()
 // 	if err != nil {
 // 		return nil, functions.NewE(err)
 // 	}

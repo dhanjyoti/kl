@@ -35,7 +35,7 @@ type GeneratedEnvs struct {
 }
 
 // func GenerateEnv() (*GeneratedEnvs, error) {
-// 	klFile, err := fileclient.GetKlFile("")
+// 	klFile, err := fileclient.GetKlFile()
 // 	if err != nil {
 // 		return nil, functions.NewE(err)
 // 	}
@@ -83,7 +83,7 @@ type (
 func (apic *apiClient) GetLoadMaps() (map[string]string, MountMap, error) {
 	fc := apic.fc
 
-	kt, err := fc.GetKlFile("")
+	kt, err := fc.GetKlFile()
 	if err != nil {
 		return nil, nil, functions.NewE(err)
 	}

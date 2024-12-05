@@ -26,7 +26,7 @@ func listPackages(cmd *cobra.Command, _ []string) error {
 		return functions.NewE(err)
 	}
 
-	kt, err := fc.GetKlFile("")
+	kt, err := fc.GetKlFile()
 	if err != nil {
 		return functions.NewE(err)
 	}

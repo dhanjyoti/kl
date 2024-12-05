@@ -7,7 +7,7 @@ import (
 )
 
 func (f *fclient) CurrentTeamName() (string, error) {
-	kt, err := f.getKlFile("")
+	kt, err := f.getKlFile()
 	if err != nil {
 		if errors.Is(err, confighandler.ErrKlFileNotExists) {
 			extraData, err := GetExtraData()

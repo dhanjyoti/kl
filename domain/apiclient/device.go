@@ -7,7 +7,6 @@ import (
 
 	"time"
 
-	"github.com/kloudlite/kl/domain/envclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/miekg/dns"
 
@@ -135,10 +134,6 @@ const (
 )
 
 func (apic *apiClient) CheckDeviceStatus() bool {
-	if !envclient.InsideBox() {
-		return false
-	}
-
 	verbose := false
 	logF := func(format string, v ...interface{}) {
 		if verbose {

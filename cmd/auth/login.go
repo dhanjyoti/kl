@@ -77,11 +77,6 @@ var loginCmd = &cobra.Command{
 			return
 		}
 
-		//if err = use.UseTeam(cmd); err != nil {
-		//	fn.PrintError(err)
-		//	return
-		//}
-
 		fn.Log("successfully logged in\n")
 	},
 }

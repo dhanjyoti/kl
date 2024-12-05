@@ -3,8 +3,6 @@ package status
 import (
 	"errors"
 	"fmt"
-	"github.com/kloudlite/kl/cmd/connect"
-	"github.com/kloudlite/kl/domain/envclient"
 	"github.com/kloudlite/kl/flags"
 	"github.com/kloudlite/kl/k3s"
 	"os"
@@ -93,19 +91,6 @@ var Cmd = &cobra.Command{
 			}
 		} else if selectedEnv != "" {
 			fn.Log(text.Bold(text.Blue("Environment: ")), selectedEnv)
-		}
-
-		if envclient.InsideBox() {
-			fn.Log(text.Bold("\nWorkspace Status"))
-			env, _ := fc.CurrentEnv()
-			fn.Log("Current Environment: ", text.Blue(env.Name))
-
-			if connect.ChekcWireguardConnection() {
-				fn.Log("Edge Connection:", text.Green("online"))
-			} else {
-				fn.Log("Edge Connection:", text.Yellow("offline"))
-			}
-			return
 		}
 
 		fn.Log(text.Bold("\nCluster Status"))

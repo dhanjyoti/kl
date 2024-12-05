@@ -2,12 +2,9 @@ package add
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -189,7 +186,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 	//	if err != nil {
 	//		return functions.NewE(err)
 	//	}
-	//	klFile, err = fileclient.GetKlFile("")
+	//	klFile, err = fileclient.GetKlFile()
 	//	if err != nil {
 	//		return functions.NewE(err)
 	//	}
@@ -243,24 +240,6 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 	}
 
 	fn.Log(fmt.Sprintf("added config %s/%s to your kl-file", selectedConfigGroup.Metadata.Name, selectedConfigKey.Key))
-
-	wpath, err := os.Getwd()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := hashctrl.SyncBoxHash(apic, fc, wpath); err != nil {
-		return fn.NewE(err)
-	}
-
-	c, err := boxpkg.NewClient(cmd, args)
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := c.ConfirmBoxRestart(); err != nil {
-		return fn.NewE(err)
-	}
 
 	return nil
 }

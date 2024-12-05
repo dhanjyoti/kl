@@ -68,7 +68,7 @@ func (apic *apiClient) GetMresConfigValues(teamName string) (map[string]string, 
 		return nil, fn.NewE(err)
 	}
 
-	kt, err := fc.GetKlFile("")
+	kt, err := fc.GetKlFile()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}

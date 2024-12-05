@@ -1,29 +1,16 @@
 package kl
 
 import (
-	"os/exec"
+
+	// "github.com/kloudlite/kl/cmd/box"
+
+	"runtime"
 
 	"github.com/kloudlite/kl/cmd/auth"
-	"github.com/kloudlite/kl/cmd/box"
-	"github.com/kloudlite/kl/cmd/clone"
-	"github.com/kloudlite/kl/cmd/cluster"
-	"github.com/kloudlite/kl/cmd/connect"
-	"github.com/kloudlite/kl/cmd/env"
-	"github.com/kloudlite/kl/cmd/expose"
-	"github.com/kloudlite/kl/cmd/get"
-	"github.com/kloudlite/kl/cmd/intercept"
-	"github.com/kloudlite/kl/cmd/kubectl"
-	"github.com/kloudlite/kl/cmd/list"
-	"github.com/kloudlite/kl/cmd/packages"
-	"github.com/kloudlite/kl/cmd/runner"
-	"github.com/kloudlite/kl/cmd/runner/add"
+	"github.com/kloudlite/kl/cmd/initp"
+	packages "github.com/kloudlite/kl/cmd/lib"
 	set_base_url "github.com/kloudlite/kl/cmd/set-base-url"
-	"github.com/kloudlite/kl/cmd/status"
-	"github.com/kloudlite/kl/cmd/use"
-	v2Add "github.com/kloudlite/kl/cmd/v2/add"
-	v2Lib "github.com/kloudlite/kl/cmd/v2/lib"
-	v2Pkg "github.com/kloudlite/kl/cmd/v2/pkg"
-	v2Shell "github.com/kloudlite/kl/cmd/v2/shell"
+	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/flags"
 	"github.com/spf13/cobra"
 )
@@ -38,42 +25,53 @@ func init() {
 		rootCmd.AddCommand(DocsCmd)
 	}
 
-	rootCmd.AddCommand(UpdateCmd)
-	rootCmd.AddCommand(list.Cmd)
-	rootCmd.AddCommand(get.Cmd)
 	rootCmd.AddCommand(auth.Cmd)
-	rootCmd.AddCommand(box.BoxCmd)
-
-	rootCmd.AddCommand(use.Cmd)
-	rootCmd.AddCommand(clone.Cmd)
-	rootCmd.AddCommand(env.Cmd)
-	rootCmd.AddCommand(runner.InitCommand)
-	rootCmd.AddCommand(runner.AttachCommand)
+	rootCmd.AddCommand(UpdateCmd)
 	rootCmd.AddCommand(set_base_url.Cmd)
+	rootCmd.AddCommand(initp.InitCommand)
 
-	rootCmd.AddCommand(intercept.Cmd)
-
-	rootCmd.AddCommand(cluster.Cmd)
-	rootCmd.AddCommand(expose.Cmd)
-
-	rootCmd.AddCommand(add.Command)
-	rootCmd.AddCommand(status.Cmd)
-	rootCmd.AddCommand(packages.Cmd)
-	rootCmd.AddCommand(packages.LibCmd)
-
-	rootCmd.AddCommand(connect.Command)
-	rootCmd.AddCommand(v2Shell.Command)
-	rootCmd.AddCommand(v2Add.Command)
-	rootCmd.AddCommand(v2Pkg.Command)
-	rootCmd.AddCommand(v2Lib.Command)
-
-	if flags.IsDev() {
-		if _, err := exec.LookPath("k9s"); err == nil {
-			rootCmd.AddCommand(kubectl.K9sCmd)
-		}
-
-		if _, err := exec.LookPath("kubectl"); err == nil {
-			rootCmd.AddCommand(kubectl.KubectlCmd)
-		}
+	if runtime.GOOS == constants.RuntimeWindows {
+		return
 	}
+
+	rootCmd.AddCommand(packages.Cmd)
+
+	if runtime.GOOS == constants.RuntimeDarwin {
+		return
+	}
+
+	// rootCmd.AddCommand(list.Cmd)
+	// rootCmd.AddCommand(get.Cmd)
+	// rootCmd.AddCommand(box.BoxCmd)
+
+	// rootCmd.AddCommand(use.Cmd)
+	// rootCmd.AddCommand(clone.Cmd)
+	// rootCmd.AddCommand(env.Cmd)
+	// rootCmd.AddCommand(runner.AttachCommand)
+	//
+	// rootCmd.AddCommand(intercept.Cmd)
+	//
+	// rootCmd.AddCommand(cluster.Cmd)
+	// rootCmd.AddCommand(expose.Cmd)
+	//
+	// rootCmd.AddCommand(add.Command)
+	// rootCmd.AddCommand(status.Cmd)
+	// rootCmd.AddCommand(packages.Cmd)
+	// rootCmd.AddCommand(packages.LibCmd)
+	//
+	// rootCmd.AddCommand(connect.Command)
+	// rootCmd.AddCommand(v2Shell.Command)
+	// rootCmd.AddCommand(v2Add.Command)
+	// rootCmd.AddCommand(v2Pkg.Command)
+	// rootCmd.AddCommand(v2Lib.Command)
+
+	// if flags.IsDev() {
+	// 	if _, err := exec.LookPath("k9s"); err == nil {
+	// 		rootCmd.AddCommand(kubectl.K9sCmd)
+	// 	}
+	//
+	// 	if _, err := exec.LookPath("kubectl"); err == nil {
+	// 		rootCmd.AddCommand(kubectl.KubectlCmd)
+	// 	}
+	// }
 }

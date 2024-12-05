@@ -115,7 +115,7 @@ func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envN
 	}
 
 	if teamName == "" {
-		kt, err := fc.GetKlFile("")
+		kt, err := fc.GetKlFile()
 		if err != nil {
 			return functions.NewE(err)
 		}
@@ -226,7 +226,7 @@ func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 	}
 
 	if teamName == "" {
-		kt, err := fc.GetKlFile("")
+		kt, err := fc.GetKlFile()
 		if err != nil {
 			return functions.NewE(err)
 		}

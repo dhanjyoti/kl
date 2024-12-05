@@ -79,3 +79,14 @@ var (
 var (
 	CoreCliName = "kl"
 )
+
+// Temporary Constants
+const (
+	NetworkService     = "kloudlite-network"
+	LocalSearchDomains = "local-search-domains"
+)
+
+// new constants kl-v2
+const (
+	KL_CONTAINER_MARK = "kl-container-mark"
+)

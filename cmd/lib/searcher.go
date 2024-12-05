@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/kloudlite/kl/pkg/ui/fzf"
-	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"io"
 	"net/http"
 	"net/url"
-	"os"
+	"runtime"
 	"strings"
+
+	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
@@ -116,7 +117,12 @@ func Resolve(ctx context.Context, pname string) (string, string, error) {
 		Systems    map[string]System `json:"systems"`
 	}
 
-	platform := os.Getenv("PLATFORM_ARCH") + "-linux"
+	platform := runtime.GOARCH + "-linux"
+	switch runtime.GOARCH {
+	case "x86_64", "amd64":
+		platform = "x86_64-linux"
+	}
+
 	sr, err := caller[Res](ctx, fmt.Sprintf("%s/v1/resolve?name=%s&version=%s&platform=%s", searchAPIEndpoint, name, v, platform))
 
 	if err != nil {

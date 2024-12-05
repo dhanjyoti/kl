@@ -1,46 +1,84 @@
 package fileclient
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 
-	"github.com/kloudlite/kl/domain/envclient"
 	confighandler "github.com/kloudlite/kl/pkg/config-handler"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
 type KLFileType struct {
-	Version    string   `json:"version" yaml:"version"`
-	DefaultEnv string   `json:"defaultEnv,omitempty" yaml:"defaultEnv,omitempty"`
-	TeamName   string   `json:"teamName,omitempty" yaml:"teamName,omitempty"`
-	Packages   []string `json:"packages" yaml:"packages"`
-	Libraries  []string `json:"libraries" yaml:"libraries"`
-	EnvVars    EnvVars  `json:"envVars" yaml:"envVars"`
-	Mounts     Mounts   `json:"mounts" yaml:"mounts"`
-	Ports      []int    `json:"ports" yaml:"ports"`
+	Version    string `json:"version" yaml:"version"`
+	DefaultEnv string `json:"defaultEnv,omitempty" yaml:"defaultEnv,omitempty"`
+	TeamName   string `json:"teamName,omitempty" yaml:"teamName,omitempty"`
 
-	// InitScripts []string `json:"initScripts" yaml:"initScripts"`
+	Packages  []string `json:"packages" yaml:"packages"`
+	Libraries []string `json:"libraries" yaml:"libraries"`
+
+	EnvVars EnvVars `json:"envVars" yaml:"envVars"`
+	Mounts  Mounts  `json:"mounts" yaml:"mounts"`
+	Ports   []int   `json:"ports" yaml:"ports"`
+
+	// packagesMap  map[string]int `json:"-"`
+	// librariesMap map[string]int `json:"-"`
+	// ConfigFile   string         `json:"-"`
+}
+
+func (k *KLFileType) Save() error {
+	if k == nil {
+		return fmt.Errorf("klfile is nil")
+	}
+
+	if err := confighandler.WriteConfig(getConfigPath(), *k, 0o644); err != nil {
+		fn.PrintError(err)
+		return functions.NewE(err)
+	}
+
+	return nil
+
 }
 
 const (
 	defaultKLFile = "kl.yml"
 )
 
-func getConfigPath() string {
-	klfilepath := os.Getenv("KLCONFIG_PATH")
-	if klfilepath != "" {
-		return klfilepath
+func lookupKLFile(dir string) (string, error) {
+	files := []string{"kl.yml", "kl.yaml"}
+	for _, name := range files {
+		fi, err := os.Stat(filepath.Join(dir, name))
+		if err != nil {
+			continue
+			// return nil, err
+		}
+		if fi.IsDir() {
+			continue
+			// return nil, fmt.Errorf("config file: %s is a directory, must be a file", fi.Name())
+		}
+		return filepath.Join(dir, name), nil
 	}
 
-	if envclient.InsideBox() {
-		s, err := envclient.GetWorkspacePath()
+	if dir == "/" {
+		return "", fmt.Errorf("config file not found")
+	}
+
+	return lookupKLFile(filepath.Dir(dir))
+}
+
+func getConfigPath() string {
+	file, ok := os.LookupEnv("KLCONFIG_PATH")
+	if !ok {
+		wd, _ := os.Getwd()
+		var err error
+		file, err = lookupKLFile(wd)
 		if err != nil {
 			return defaultKLFile
 		}
-		return s
 	}
 
-	return defaultKLFile
+	return file
 }
 
 func (c *fclient) WriteKLFile(fileObj KLFileType) error {
@@ -52,25 +90,16 @@ func (c *fclient) WriteKLFile(fileObj KLFileType) error {
 	return nil
 }
 
-func (c *fclient) GetKlFile(filePath string) (*KLFileType, error) {
-	klfile, err := c.getKlFile(filePath)
+func (c *fclient) GetKlFile() (*KLFileType, error) {
+	klfile, err := c.getKlFile()
 	if err != nil {
 		return nil, functions.NewE(err)
 	}
-	// if klfile.TeamName == "" {
-	// 	return nil, functions.Error("kl file is not valid, teamName is not set properly. You can re-initialize kl file by running \"kl init\" command.")
-	// }
-	// if klfile.DefaultEnv == "" {
-	// 	return nil, functions.Error("kl file is not valid, defaultEnv is not set properly. You can re-intialize kl file by running \"kl init\" command.")
-	// }
 	return klfile, nil
 }
 
-func (c *fclient) getKlFile(filePath string) (*KLFileType, error) {
-	if filePath == "" {
-		s := getConfigPath()
-		filePath = s
-	}
+func (c *fclient) getKlFile() (*KLFileType, error) {
+	filePath := getConfigPath()
 
 	klfile, err := confighandler.ReadConfig[KLFileType](filePath)
 	if err != nil {

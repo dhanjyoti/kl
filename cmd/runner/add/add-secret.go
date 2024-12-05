@@ -2,11 +2,8 @@ package add
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/functions"
@@ -220,37 +217,10 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 
 	fn.Log(fmt.Sprintf("added secret %s/%s to your kl-file", selectedSecretGroup.Metadata.Name, selectedSecretKey.Key))
 
-	wpath, err := os.Getwd()
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	if err := hashctrl.SyncBoxHash(apic, fc, wpath); err != nil {
-		return functions.NewE(err)
-	}
-
-	c, err := boxpkg.NewClient(cmd, args)
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	if err := c.ConfirmBoxRestart(); err != nil {
-		return functions.NewE(err)
-	}
-
-	//if err := apiclient.SyncDevboxJsonFile(); err != nil {
-	//	return functions.NewE(err)
-	//}
-	//
-	//if err := fileclient.SyncDevboxShellEnvFile(cmd); err != nil {
-	//	return functions.NewE(err)
-	//}
 	return nil
 }
 
 func init() {
-	// secCmd.Flags().StringP("map", "m", "", "secret_key=your_var_key")
-
 	secCmd.Aliases = append(secCmd.Aliases, "sec")
 	fn.WithKlFile(secCmd)
 }

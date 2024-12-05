@@ -129,8 +129,5 @@ func startIntercept(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cob
 }
 
 func init() {
-	fileclient.OnlyInsideBox(Cmd)
-
-	fileclient.OnlyInsideBox(stopCmd)
 	Cmd.AddCommand(stopCmd)
 }

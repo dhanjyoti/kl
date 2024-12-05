@@ -6,10 +6,7 @@ import (
 	confighandler "github.com/kloudlite/kl/pkg/config-handler"
 	"os"
 
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/apiclient"
-	"github.com/kloudlite/kl/domain/envclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 
@@ -41,7 +38,7 @@ var AttachCommand = &cobra.Command{
 		//	return
 		//}
 
-		//if _, err = fc.GetKlFile(""); err == nil {
+		//if _, err = fc.GetKlFile(); err == nil {
 		//	fn.Printf(text.Yellow("workspace is already initilized. Do you want to override? [y/N]: "))
 		//	if !fn.Confirm("Y", "N") {
 		//		return
@@ -52,9 +49,6 @@ var AttachCommand = &cobra.Command{
 		//}
 
 		filepath := ""
-		if envclient.InsideBox() {
-			filepath = "/home/kl/workspace/kl.yml"
-		}
 		klFile, err := fc.GetKlFile(filepath)
 		if err != nil && errors.Is(err, confighandler.ErrKlFileNotExists) {
 			klFile = &fileclient.KLFileType{
@@ -89,37 +83,6 @@ var AttachCommand = &cobra.Command{
 				}
 			}
 		}
-
-		dir, err := os.Getwd()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		if err := hashctrl.SyncBoxHash(apic, fc, dir); err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		c, err := boxpkg.NewClient(cmd, args)
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		if envclient.InsideBox() {
-			if err := c.StopContainer(); err != nil {
-				fn.PrintError(err)
-				return
-			}
-			return
-		}
-
-		if err := c.ConfirmBoxRestart(); err != nil {
-			fn.PrintError(err)
-			return
-		}
-
 	},
 }
 
@@ -156,9 +119,6 @@ func selectEnv(apic apiclient.ApiClient, fc fileclient.FileClient, teamName stri
 			return nil, fn.NewE(err)
 		} else {
 			cwd, err := os.Getwd()
-			if envclient.InsideBox() {
-				cwd = os.Getenv("KL_WORKSPACE")
-			}
 			env := &fileclient.Env{
 				Name: selectedEnv.Metadata.Name,
 			}

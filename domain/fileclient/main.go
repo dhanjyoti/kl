@@ -22,7 +22,7 @@ type FileClient interface {
 	SetDevice(device *DeviceContext) error
 
 	WriteKLFile(fileObj KLFileType) error
-	GetKlFile(filePath string) (*KLFileType, error)
+	GetKlFile() (*KLFileType, error)
 	SelectEnv(ev Env) error
 	SelectEnvOnPath(pth string, ev Env) error
 	EnvOfPath(pth string) (*Env, error)

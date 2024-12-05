@@ -2,16 +2,14 @@ package clone
 
 import (
 	"fmt"
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
+	"time"
+
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
-	"os"
-	"time"
 )
 
 var cloneCmd = &cobra.Command{
@@ -41,7 +39,7 @@ func envClone(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	klFile, err := fc.GetKlFile("")
+	klFile, err := fc.GetKlFile()
 	if err != nil {
 		return err
 	}
@@ -74,22 +72,6 @@ func envClone(cmd *cobra.Command, args []string) error {
 		text.Blue(fmt.Sprintf("\n%s (%s)", env.DisplayName, env.Metadata.Name)),
 	)
 
-	wpath, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	if err := hashctrl.SyncBoxHash(apic, fc, wpath); err != nil {
-		return err
-	}
-
-	c, err := boxpkg.NewClient(cmd, nil)
-	if err != nil {
-		return err
-	}
-
-	if err := c.ConfirmBoxRestart(); err != nil {
-		return err
-	}
 	return nil
 }
 

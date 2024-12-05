@@ -2,14 +2,10 @@ package add
 
 import (
 	"fmt"
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
-	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
-	"os"
 	"strings"
 )
 
@@ -47,12 +43,7 @@ func addEnvvar(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err)
 	}
 
-	apic, err := apiclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	kt, err := fc.GetKlFile("")
+	kt, err := fc.GetKlFile()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -83,24 +74,6 @@ func addEnvvar(cmd *cobra.Command, args []string) error {
 	}
 
 	fn.Log(text.Green(fmt.Sprintf("added envvar %s=%s to your kl-file", key, value)))
-
-	wpath, err := os.Getwd()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := hashctrl.SyncBoxHash(apic, fc, wpath); err != nil {
-		return fn.NewE(err)
-	}
-
-	c, err := boxpkg.NewClient(cmd, args)
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := c.ConfirmBoxRestart(); err != nil {
-		return fn.NewE(err)
-	}
 
 	return nil
 }

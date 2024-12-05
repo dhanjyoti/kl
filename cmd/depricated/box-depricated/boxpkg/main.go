@@ -39,18 +39,18 @@ type client struct {
 
 type BoxClient interface {
 	SyncProxy(config ProxyConfig) error
-	Stop() error
-	Restart() error
-	Start() error
-	Ssh() error
-	Reload() error
-	PrintBoxes([]Cntr) error
-	ListAllBoxes() ([]Cntr, error)
-	Info() error
+	// Stop() error
+	// Restart() error
+	// Start() error
+	// Ssh() error
+	// Reload() error
+	// PrintBoxes([]Cntr) error
+	// ListAllBoxes() ([]Cntr, error)
+	// Info() error
 	Exec([]string, io.Writer) error
 
 	ConfirmBoxRestart() error
-	StartWgContainer() error
+	// StartWgContainer() error
 	StopContainer() error
 }
 
@@ -81,7 +81,7 @@ func NewClient(cmd *cobra.Command, args []string) (BoxClient, error) {
 	hash.Write([]byte(cwd))
 	contName := fmt.Sprintf("klbox-%s", fmt.Sprintf("%x", hash.Sum(nil))[:8])
 
-	klFile, err := fc.GetKlFile("")
+	klFile, err := fc.GetKlFile()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}

@@ -2,10 +2,7 @@ package add
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -119,24 +116,6 @@ func AddMres(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Comm
 	}
 
 	fn.Log(fmt.Sprintf("added mres %s/%s to your kl-file", mres.SecretRefName.Name, *mresKey))
-
-	wpath, err := os.Getwd()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := hashctrl.SyncBoxHash(apic, fc, wpath); err != nil {
-		return fn.NewE(err)
-	}
-
-	c, err := boxpkg.NewClient(cmd, args)
-	if err != nil {
-		return err
-	}
-
-	if err := c.ConfirmBoxRestart(); err != nil {
-		return fn.NewE(err)
-	}
 
 	return nil
 }

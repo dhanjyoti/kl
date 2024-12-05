@@ -2,12 +2,8 @@ package packages
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
-	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -31,11 +27,6 @@ func rmPackages(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err)
 	}
 
-	apic, err := apiclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
 	name := fn.ParseStringFlag(cmd, "name")
 	if name == "" && len(args) > 0 {
 		name = args[0]
@@ -45,7 +36,7 @@ func rmPackages(cmd *cobra.Command, args []string) error {
 		return fn.Error("name is required")
 	}
 
-	klConf, err := fc.GetKlFile("")
+	klConf, err := fc.GetKlFile()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -63,24 +54,6 @@ func rmPackages(cmd *cobra.Command, args []string) error {
 	}
 
 	fn.Println(fmt.Sprintf("Package %s is deleted", name))
-
-	cwd, err := os.Getwd()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := hashctrl.SyncBoxHash(apic, fc, cwd); err != nil {
-		return fn.NewE(err)
-	}
-
-	c, err := boxpkg.NewClient(cmd, args)
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := c.ConfirmBoxRestart(); err != nil {
-		return fn.NewE(err)
-	}
 
 	return nil
 }
@@ -105,11 +78,6 @@ func removeLibraries(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err)
 	}
 
-	apic, err := apiclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
 	name := fn.ParseStringFlag(cmd, "name")
 	if name == "" && len(args) > 0 {
 		name = args[0]
@@ -119,7 +87,7 @@ func removeLibraries(cmd *cobra.Command, args []string) error {
 		return fn.Error("name is required")
 	}
 
-	klConf, err := fc.GetKlFile("")
+	klConf, err := fc.GetKlFile()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -137,24 +105,6 @@ func removeLibraries(cmd *cobra.Command, args []string) error {
 	}
 
 	fn.Println(fmt.Sprintf("Package %s is deleted", name))
-
-	cwd, err := os.Getwd()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := hashctrl.SyncBoxHash(apic, fc, cwd); err != nil {
-		return fn.NewE(err)
-	}
-
-	c, err := boxpkg.NewClient(cmd, args)
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := c.ConfirmBoxRestart(); err != nil {
-		return fn.NewE(err)
-	}
 
 	return nil
 }
