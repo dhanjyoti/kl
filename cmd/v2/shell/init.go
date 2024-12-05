@@ -1,6 +1,8 @@
 package shell
 
 import (
+	"os"
+
 	"github.com/kloudlite/kl/cmd/v2/internal/lib"
 	"github.com/spf13/cobra"
 )
@@ -35,30 +37,12 @@ var Command = &cobra.Command{
 		}
 
 		if err := lib.NixShell(cmd.Context(), lib.ShellArgs{
+			Shell:     os.Getenv("SHELL"),
 			EnvVars:   append(pk.EnvVars, "KL_SHELL=true", "KL_HASH="+pk.Hash),
 			Packages:  pkgs,
 			Libraries: libs,
 		}); err != nil {
 			panic(err)
 		}
-
-		// shell := os.Getenv("SHELL")
-		// if shell == "" {
-		// 	shell = "/bin/sh"
-		// }
-		//
-		// env := make([]string, 0, len(os.Environ())+len(pk.EnvVars)+1)
-		// env = append(env, os.Environ()...)
-		// env = append(env, pk.EnvVars...)
-		// env = append(env, "KL_SHELL=true", "KL_HASH="+pk.Hash)
-		//
-		// c := exec.Command(shell)
-		// c.Env = env
-		// c.Stdin = os.Stdin
-		// c.Stdout = os.Stdout
-		// c.Stderr = os.Stderr
-		// if err := c.Run(); err != nil {
-		// 	fmt.Printf("Failed to start shell process: %v\n", err)
-		// }
 	},
 }

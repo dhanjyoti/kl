@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -8,35 +9,42 @@ import (
 	"strings"
 )
 
-func InstallPackage(interactive bool, pkgs ...string) ([]string, error) {
-	c := exec.Command("sh", "-c", fmt.Sprintf("nix shell %s --command echo downloaded", strings.Join(pkgs, " ")))
+func installPackage(pkgs ...string) (path string, err error) {
+	c := exec.Command("sh", "-c", fmt.Sprintf("nix shell %s --command printenv PATH", strings.Join(pkgs, " ")))
 
-	c.Stdout = os.Stdout
+	b := new(bytes.Buffer)
+	c.Stdout = b
 	c.Stderr = os.Stderr
 	c.Stdin = os.Stdin
 	if err := c.Run(); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return nil, nil
+	return b.String(), nil
 }
 
 type ShellArgs struct {
+	Shell     string
 	EnvVars   []string
 	Packages  []string
 	Libraries []string
 }
 
-func pathExists(p string) error {
+func pathExists(p string) bool {
 	_, err := os.Stat(p)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err == nil
 }
 
 func NixShell(ctx context.Context, args ShellArgs) error {
 	ev := append(os.Environ(), args.EnvVars...)
+	// ev := args.EnvVars
+
+	path, err := installPackage(args.Packages...)
+	if err != nil {
+		return err
+	}
+
+	ev = append(ev, fmt.Sprintf("PATH=%s", path))
 
 	libPaths := make([]string, 0, len(args.Libraries))
 	var includes []string
@@ -50,8 +58,11 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 			return err
 		}
 
-		// ev = append(ev, fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", string(b)+"/lib", os.Getenv("LD_LIBRARY_PATH")))
-		if pathExists(string(b)+"/include") != nil {
+		if pathExists(string(b) + "/lib") {
+			libPaths = append(libPaths, string(b)+"/lib")
+		}
+
+		if pathExists(string(b) + "/include") {
 			includes = append(includes, string(b)+"/include")
 		}
 
@@ -63,12 +74,18 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 		lines := strings.Split(string(b2), "\n")
 		// fmt.Printf("b2: %v %d\n", lines, len(lines))
 
-		libPaths = append(libPaths, string(b)+"/lib")
-		for i := range lines {
-			if len(strings.TrimSpace(lines[i])) > 0 {
-				if pathExists(lines[i]+"/lib") != nil {
-					libPaths = append(libPaths, lines[i]+"/lib")
+		for _, line := range lines {
+			if len(strings.TrimSpace(line)) > 0 && !strings.Contains(line, "-glibc-") {
+				// if len(strings.TrimSpace(line)) > 0 {
+				if pathExists(line + "/lib") {
+					libPaths = append(libPaths, line+"/lib")
 				}
+				// if pathExists(line + "/lib64") {
+				// 	libPaths = append(libPaths, line+"/lib64")
+				// }
+				// if pathExists(line + "/include") {
+				// 	includes = append(includes, line+"/include")
+				// }
 			}
 		}
 	}
@@ -76,11 +93,21 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 	libPaths = createSet(libPaths)
 	includes = createSet(includes)
 
-	fmt.Printf("LD_LIBRARY_PATH: %s\n#######\n", strings.Join(libPaths, ":"))
+	for i := range libPaths {
+		fmt.Printf("%s\n", libPaths[i])
+	}
+
 	ev = append(ev, fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", strings.Join(libPaths, ":"), os.Getenv("LD_LIBRARY_PATH")))
 	ev = append(ev, fmt.Sprintf("CPATH=%s:%s", strings.Join(includes, ":"), os.Getenv("CPATH")))
-	c := exec.Command("sh", "-c", fmt.Sprintf("nix shell %s", strings.Join(args.Packages, " ")))
 
+	// ev = append(ev, "LD_LIBRARY_PATH=")
+
+	shell := args.Shell
+	if shell == "" {
+		shell = "sh"
+	}
+
+	c := exec.Command(shell)
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	c.Stdin = os.Stdin
