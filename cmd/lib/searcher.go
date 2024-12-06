@@ -117,10 +117,13 @@ func Resolve(ctx context.Context, pname string) (string, string, error) {
 		Systems    map[string]System `json:"systems"`
 	}
 
-	platform := runtime.GOARCH + "-linux"
+	platform := runtime.GOARCH + runtime.GOOS
 	switch runtime.GOARCH {
 	case "x86_64", "amd64":
-		platform = "x86_64-linux"
+		platform = "x86_64-" + runtime.GOOS
+	case "arm64":
+		platform = "aarch64-" + runtime.GOOS
+
 	}
 
 	sr, err := caller[Res](ctx, fmt.Sprintf("%s/v1/resolve?name=%s&version=%s&platform=%s", searchAPIEndpoint, name, v, platform))
