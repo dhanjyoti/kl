@@ -268,7 +268,7 @@ func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 	query := "cli_removeDeviceIntercepts"
 
 	respData, err := klFetch(query, map[string]any{
-		"envName":    currentEnv.Name,
+		"envName":    currentEnv,
 		"deviceName": devName,
 		//"deviceName": config.ClusterName,
 	}, &cookie)

@@ -1,7 +1,6 @@
 package use
 
 import (
-	"github.com/kloudlite/kl/cmd/cluster"
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -23,12 +22,12 @@ var teamCmd = &cobra.Command{
 func UseTeam(cmd *cobra.Command) error {
 	apic, err := apiclient.New()
 	if err != nil {
-		return fn.NewE(err)
+		return err
 	}
 
 	teams, err := apic.ListTeams()
 	if err != nil {
-		return fn.NewE(err)
+		return err
 	}
 
 	var selectedTeam *apiclient.Team
@@ -46,41 +45,15 @@ func UseTeam(cmd *cobra.Command) error {
 		}
 	}
 
-	data, err := fileclient.GetExtraData()
+	sd, err := fileclient.GetSessionData()
 	if err != nil {
-		return fn.NewE(err)
+		return err
 	}
 
-	if selectedTeam.Metadata.Name != data.SelectedTeam && data.SelectedTeam != "" {
-		if err := cluster.StopK3sServer(cmd); err != nil {
-			return fn.NewE(err)
-		}
+	if err := sd.SetTeam(selectedTeam.Metadata.Name); err != nil {
+		return err
 	}
 
-	data.SelectedTeam = selectedTeam.Metadata.Name
-
-	err = fileclient.SaveExtraData(data)
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	//_, err = apic.GetClusterConfig(selectedTeam.Metadata.Name)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//_, err = apic.GetAccVPNConfig(selectedTeam.Metadata.Name)
-	//if err != nil {
-	//	return err
-	//}
-
-	//k, err := cluster.NewClient()
-	//if err != nil {
-	//	return err
-	//}
-	//if err = k.CreateClustersTeams(selectedTeam.Metadata.Name); err != nil {
-	//	return fn.NewE(err)
-	//}
 	fn.Log("Selected team is", selectedTeam.Metadata.Name)
 	return nil
 }

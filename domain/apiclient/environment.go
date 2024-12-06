@@ -104,28 +104,26 @@ func (apic *apiClient) GetEnvironment(teamName, envName string) (*Env, error) {
 	}
 }
 
-func (apic *apiClient) EnsureEnv() (*fileclient.Env, error) {
+func (apic *apiClient) EnsureEnv() (string, error) {
 	CurrentEnv, err := apic.fc.CurrentEnv()
 	if err != nil && err.Error() != fileclient.NoEnvSelected.Error() {
-		return nil, functions.NewE(err)
+		return "", functions.NewE(err)
 	} else if err == nil {
 		return CurrentEnv, nil
 	}
 	kt, err := apic.fc.GetKlFile()
 	if err != nil {
-		return nil, functions.NewE(err)
+		return "", functions.NewE(err)
 	}
 	if kt.DefaultEnv == "" {
-		return nil, NoDefaultEnvError
+		return "", NoDefaultEnvError
 	}
 	e, err := apic.GetEnvironment(kt.TeamName, kt.DefaultEnv)
 	if err != nil {
-		return nil, functions.NewE(err)
+		return "", functions.NewE(err)
 	}
-	return &fileclient.Env{
-		Name:    e.DisplayName,
-		SSHPort: 0,
-	}, nil
+
+	return e.Metadata.Name, nil
 }
 
 // func _EnsureEnv(env *fileclient.Env, options ...fn.Option) (*fileclient.Env, error) {

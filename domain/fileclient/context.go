@@ -49,42 +49,15 @@ type WGConfig struct {
 	Proxy     Keys   `json:"wg-proxy"`
 }
 
-type Env struct {
-	Name    string `json:"name,omitempty"`
-	SSHPort int    `json:"sshPort"`
-}
-
-type Session struct {
-	Session string `json:"session"`
-}
-
-type MainContext struct {
-	TeamName string `json:"teamName"`
-}
-
 type DeviceContext struct {
 	DisplayName string `json:"display_name"`
 	DeviceName  string `json:"device_name"`
 }
 
-type InfraContext struct {
-	Name        string `json:"name"`
-	TeamName    string `json:"teamName"`
-	ClusterName string `json:"ClusterName"`
-	DeviceName  string `json:"deviceName"`
-}
-
-type InfraContexts struct {
-	InfraContexts map[string]*InfraContext `json:"infraContexts"`
-	ActiveContext string                   `json:"activeContext"`
-}
-
 type ExtraData struct {
-	BaseUrl         string          `json:"baseUrl"`
-	SelectedTeam    string          `json:"selectedTeam"`
-	DnsHostSuffix   string          `json:"dnsHostSuffix"`
-	SelectedEnvs    map[string]*Env `json:"selectedEnvs"`
-	LastUpdateCheck time.Time       `json:"lastUpdateCheck"`
+	BaseUrl         string    `json:"baseUrl"`
+	DnsHostSuffix   string    `json:"dnsHostSuffix"`
+	LastUpdateCheck time.Time `json:"lastUpdateCheck"`
 }
 
 type Port struct {
@@ -386,56 +359,22 @@ func (fc *fclient) GetK3sTracker() (*K3sTracker, error) {
 }
 
 func GetCookieString(options ...fn.Option) (string, error) {
-	accName := fn.GetOption(options, "teamName")
+	teamName := fn.GetOption(options, "teamName")
 
-	session, err := GetAuthSession()
+	sd, err := GetSessionData()
 	if err != nil {
-		return "", functions.NewE(err, "failed to get auth session")
+		return "", err
 	}
-
-	if session == "" {
+	session, err := sd.GetSession()
+	if err != nil {
 		return "", fn.Errorf("unauthorized")
 	}
 
-	if accName != "" {
-		return fmt.Sprintf("kloudlite-account=%s;hotspot-session=%s", accName, session), nil
+	if teamName != "" {
+		return fmt.Sprintf("kloudlite-account=%s;hotspot-session=%s", teamName, session), nil
 	}
 
 	return fmt.Sprintf("hotspot-session=%s", session), nil
-}
-
-func GetAuthSession() (string, error) {
-	file, err := ReadFile(SessionFileName)
-
-	session := Session{}
-
-	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			b, err := yaml.Marshal(session)
-			if err != nil {
-				return "", functions.NewE(err, "failed to marshal session")
-			}
-
-			if err := writeOnUserScope(SessionFileName, b); err != nil {
-				return "", functions.NewE(err, "failed to save session")
-			}
-		}
-	}
-
-	if err = yaml.Unmarshal(file, &session); err != nil {
-		return "", functions.NewE(err, "failed to unmarshal session")
-	}
-
-	return session.Session, nil
-}
-
-func SaveAuthSession(session string) error {
-	file, err := yaml.Marshal(Session{Session: session})
-	if err != nil {
-		return functions.NewE(err, "failed to marshal session")
-	}
-
-	return writeOnUserScope(SessionFileName, file)
 }
 
 func writeOnUserScope(name string, data []byte) error {
@@ -477,7 +416,7 @@ func ReadFile(name string) ([]byte, error) {
 	filePath := path.Join(dir, name)
 
 	if _, er := os.Stat(filePath); errors.Is(er, os.ErrNotExist) {
-		return nil, fn.Errorf("file not found")
+		return nil, err
 	}
 
 	file, err := os.ReadFile(filePath)

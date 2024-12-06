@@ -51,13 +51,13 @@ func listapps(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Com
 		return functions.NewE(err)
 	}
 
-	apps, err := apic.ListApps(currentTeamName, currentEnvName.Name)
+	apps, err := apic.ListApps(currentTeamName, currentEnvName)
 	if err != nil {
 		return functions.NewE(err)
 	}
 
 	if len(apps) == 0 {
-		return fn.Errorf("[#] no apps found in environemnt: %s", text.Blue(currentEnvName.Name))
+		return fn.Errorf("[#] no apps found in environemnt: %s", text.Blue(currentEnvName))
 	}
 
 	header := table.Row{
@@ -79,7 +79,7 @@ func listapps(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Com
 
 	fn.Println(table.Table(&header, rows, cmd))
 
-	table.KVOutput("apps of environment: ", currentEnvName.Name, true)
+	table.KVOutput("apps of environment: ", currentEnvName, true)
 	table.TotalResults(len(apps), true)
 	return nil
 }

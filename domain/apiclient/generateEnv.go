@@ -107,7 +107,7 @@ func (apic *apiClient) GetLoadMaps() (map[string]string, MountMap, error) {
 	currMounts := kt.Mounts.GetMounts()
 
 	respData, err := klFetch("cli_getConfigSecretMap", map[string]any{
-		"envName": env.Name,
+		"envName": env,
 		"configQueries": func() []any {
 			var queries []any
 			for _, v := range currConfs {

@@ -1,4 +1,4 @@
-package packages
+package pkg
 
 import (
 	"github.com/kloudlite/kl/domain/fileclient"

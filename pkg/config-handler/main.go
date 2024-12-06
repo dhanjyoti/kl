@@ -1,7 +1,6 @@
 package confighandler
 
 import (
-	"errors"
 	"io/fs"
 	"os"
 
@@ -9,15 +8,10 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-var ErrKlFileNotExists = fn.Error("please ensure kl.yaml file by running \"kl init\" command in your workspace root.")
-
 func ReadConfig[T any](path string) (*T, error) {
 	var v T
 	b, err := os.ReadFile(path)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, ErrKlFileNotExists
-		}
 		return nil, err
 	}
 	if err := yaml.Unmarshal(b, &v); err != nil {

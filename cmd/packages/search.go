@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kloudlite/kl/cmd/packages/lib"
+	"github.com/kloudlite/kl/cmd/packages/pkg"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/nixpkghandler"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
@@ -13,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var PackageSearchCmd = &cobra.Command{
+var SearchCmd = &cobra.Command{
 	Use:   "search [name]",
 	Short: "search for a package|library",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -74,7 +76,10 @@ func searchPackages(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	PackageSearchCmd.Flags().StringP("name", "n", "", "name of the package to remove")
+	SearchCmd.Flags().StringP("name", "n", "", "name of the package to remove")
+
+	lib.Cmd.AddCommand(SearchCmd)
+	pkg.Cmd.AddCommand(SearchCmd)
 
 	// TODO: add show-all flag
 	// searchCmd.Flags().BoolP("show-all", "a", false, "list all matching packages")

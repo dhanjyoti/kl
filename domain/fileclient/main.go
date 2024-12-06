@@ -25,10 +25,8 @@ type FileClient interface {
 
 	GetLockfile() (*Lockfile, error)
 
-	SelectEnv(ev Env) error
-	SelectEnvOnPath(pth string, ev Env) error
-	EnvOfPath(pth string) (*Env, error)
-	CurrentEnv() (*Env, error)
+	SelectEnv(ev string) error
+	CurrentEnv() (string, error)
 }
 
 func New() (FileClient, error) {

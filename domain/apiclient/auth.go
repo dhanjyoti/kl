@@ -88,7 +88,12 @@ func (apic *apiClient) Login(loginId string) error {
 			req.Header.Set("Cookie", loginStatusResponse.RemoteLogin.AuthHeader)
 			cookie, _ := req.Cookie("hotspot-session")
 
-			return fileclient.SaveAuthSession(cookie.Value)
+			sd, err := fileclient.GetSessionData()
+			if err != nil {
+				return err
+			}
+
+			return sd.SetSession(cookie.Value)
 		}
 		if loginStatusResponse.RemoteLogin.Status == "failed" {
 			return functions.Error("remote login failed")

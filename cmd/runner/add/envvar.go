@@ -69,7 +69,7 @@ func addEnvvar(cmd *cobra.Command, args []string) error {
 		kt.EnvVars = append(kt.EnvVars, newEnv)
 	}
 
-	if err = fc.WriteKLFile(*kt); err != nil {
+	if err = kt.Save(); err != nil {
 		return fn.NewE(err)
 	}
 

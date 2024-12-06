@@ -54,7 +54,7 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 		filePath = "/home/kl/workspace/kl.yml"
 	}
 
-	klFile, err := fc.GetKlFile(filePath)
+	klFile, err := fc.GetKlFile()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -68,7 +68,7 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err)
 	}
 
-	secrets, err := apic.ListSecrets(currentTeam, currentEnv.Name)
+	secrets, err := apic.ListSecrets(currentTeam, currentEnv)
 	if err != nil {
 		return functions.NewE(err)
 	}
@@ -210,8 +210,7 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 	}
 
 	klFile.EnvVars.AddResTypes(currSecs, fileclient.Res_secret)
-	err = fc.WriteKLFile(*klFile)
-	if err != nil {
+	if err = klFile.Save(); err != nil {
 		return functions.NewE(err)
 	}
 

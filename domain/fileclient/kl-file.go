@@ -53,8 +53,8 @@ func (c *fclient) GetLockfile() (*Lockfile, error) {
 
 	kllockfile, err := confighandler.ReadConfig[Lockfile](fmt.Sprintf("%s.lock", filePath))
 	if err != nil {
-		if !errors.Is(err, confighandler.ErrKlFileNotExists) {
-			return nil, fn.NewE(err, "failed to read lockfile")
+		if !errors.Is(err, os.ErrNotExist) {
+			return nil, err
 		}
 
 		return &Lockfile{
@@ -132,6 +132,10 @@ func (c *fclient) WriteKLFile(fileObj KLFileType) error {
 func (c *fclient) GetKlFile() (*KLFileType, error) {
 	klfile, err := c.getKlFile()
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, fn.Errorf("no kl.yml found, please run `kl init` to initialize kl.yml")
+		}
+
 		return nil, functions.NewE(err)
 	}
 	return klfile, nil

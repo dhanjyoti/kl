@@ -48,7 +48,7 @@ var secretCmd = &cobra.Command{
 				fn.PrintError(err)
 				return
 			}
-			secrets, err := apic.ListSecrets(currentTeam, currentEnv.Name)
+			secrets, err := apic.ListSecrets(currentTeam, currentEnv)
 			if err != nil {
 				fn.PrintError(err)
 				return

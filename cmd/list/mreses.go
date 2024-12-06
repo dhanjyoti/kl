@@ -40,13 +40,13 @@ var mresCmd = &cobra.Command{
 			return
 		}
 
-		mres, err := apic.ListMreses(currentTeam, currentEnv.Name)
+		mres, err := apic.ListMreses(currentTeam, currentEnv)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		if err := printMres(apic, cmd, mres, currentEnv.Name); err != nil {
+		if err := printMres(apic, cmd, mres, currentEnv); err != nil {
 			fn.PrintError(err)
 			return
 		}
@@ -59,7 +59,7 @@ func printMres(apic apiclient.ApiClient, cmd *cobra.Command, mres []apiclient.Mr
 		return fn.NewE(err)
 	}
 	if len(mres) == 0 {
-		return fn.Errorf("[#] no managed resources found in environemnt: %s", text.Blue(e.Name))
+		return fn.Errorf("[#] no managed resources found in environemnt: %s", text.Blue(e))
 	}
 
 	header := table.Row{

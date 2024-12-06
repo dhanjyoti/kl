@@ -115,7 +115,7 @@ func (apic *apiClient) GetSecret(teamName string, secretName string) (*Secret, e
 
 	respData, err := klFetch("cli_getSecret", map[string]any{
 		"name":    secretName,
-		"envName": strings.TrimSpace(currentEnv.Name),
+		"envName": strings.TrimSpace(currentEnv),
 	}, &cookie)
 
 	if err != nil {

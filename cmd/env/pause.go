@@ -41,7 +41,7 @@ func envPause() error {
 		return err
 	}
 
-	e, err := apic.GetEnvironment(team, env.Name)
+	e, err := apic.GetEnvironment(team, env)
 	if err != nil {
 		return err
 	}

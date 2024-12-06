@@ -1,4 +1,4 @@
-package packages
+package pkg
 
 import (
 	"github.com/spf13/cobra"
@@ -16,5 +16,4 @@ func init() {
 	Cmd.AddCommand(listCmd)
 	Cmd.AddCommand(addCmd)
 	Cmd.AddCommand(rmCmd)
-	Cmd.AddCommand(PackageSearchCmd)
 }

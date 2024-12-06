@@ -48,7 +48,7 @@ func AddMres(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Comm
 	if filePath == "" {
 		filePath = "/home/kl/workspace/kl.yml"
 	}
-	kt, err := fc.GetKlFile(filePath)
+	kt, err := fc.GetKlFile()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -111,7 +111,7 @@ func AddMres(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Comm
 	}
 
 	kt.EnvVars.AddResTypes(currMreses, fileclient.Res_mres)
-	if err := fc.WriteKLFile(*kt); err != nil {
+	if err := kt.Save(); err != nil {
 		return fn.NewE(err)
 	}
 
@@ -129,7 +129,7 @@ func selectMres(apic apiclient.ApiClient, fc fileclient.FileClient) (*apiclient.
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-	m, err := apic.ListMreses(currentTeam, currentEnv.Name)
+	m, err := apic.ListMreses(currentTeam, currentEnv)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}

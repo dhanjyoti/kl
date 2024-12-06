@@ -1,79 +1,88 @@
 package fileclient
 
 import (
+	"errors"
 	"os"
+	"path"
 
+	confighandler "github.com/kloudlite/kl/pkg/config-handler"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
 var NoEnvSelected = fn.Errorf("no selected environment")
 
-func (f *fclient) SelectEnv(ev Env) error {
-	k, err := GetExtraData()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	dir, err := os.Getwd()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if k.SelectedEnvs == nil {
-		k.SelectedEnvs = map[string]*Env{}
-	}
-
-	k.SelectedEnvs[dir] = &ev
-
-	return SaveExtraData(k)
+type LocalEnv struct {
+	ActiveEnv string `json:"activeEnv" yaml:"activeEnv" `
 }
 
-func (f *fclient) SelectEnvOnPath(pth string, ev Env) error {
-	k, err := GetExtraData()
-	if err != nil {
-		return fn.NewE(err)
+func (le *LocalEnv) GetActiveEnv() (string, error) {
+	if le.ActiveEnv == "" {
+		return "", fn.Errorf("no environment selected")
 	}
 
-	if k.SelectedEnvs == nil {
-		k.SelectedEnvs = map[string]*Env{}
-	}
-
-	k.SelectedEnvs[pth] = &ev
-
-	return SaveExtraData(k)
+	return le.ActiveEnv, nil
 }
 
-func (f *fclient) EnvOfPath(pth string) (*Env, error) {
-	c, err := GetExtraData()
-	if err != nil {
-		return nil, fn.NewE(err)
+func getEnvConfigPath() (string, error) {
+	cf := path.Join(path.Dir(getConfigPath()), ".kl")
+
+	if err := os.MkdirAll(cf, os.ModePerm); err != nil {
+		return "", err
 	}
 
-	if c.SelectedEnvs == nil || c.SelectedEnvs[pth] == nil {
-		return nil, fn.NewE(NoEnvSelected)
-	}
-
-	return c.SelectedEnvs[pth], nil
+	return cf, nil
 }
 
-func (f *fclient) CurrentEnv() (*Env, error) {
-	c, err := GetExtraData()
+func GetEnvSession() (*LocalEnv, error) {
+	s, err := getEnvConfigPath()
 	if err != nil {
-		return nil, fn.NewE(err)
+		return nil, err
 	}
 
-	dir, err := os.Getwd()
+	le, err := confighandler.ReadConfig[LocalEnv](path.Join(s, "config.yml"))
 	if err != nil {
-		return nil, fn.NewE(err)
+		if errors.Is(err, os.ErrNotExist) {
+			le := &LocalEnv{}
+			if err := le.Save(); err != nil {
+				return nil, err
+			}
+			return le, nil
+		}
+		return nil, err
 	}
 
-	if c.SelectedEnvs == nil {
-		return nil, fn.NewE(NoEnvSelected)
+	return le, nil
+}
+
+func (le *LocalEnv) SetEnv(env string) error {
+	le.ActiveEnv = env
+	return le.Save()
+}
+
+func (le *LocalEnv) Save() error {
+	envCpath, err := getEnvConfigPath()
+	if err != nil {
+		return err
 	}
 
-	if c.SelectedEnvs[dir] == nil {
-		return nil, fn.NewE(NoEnvSelected)
+	return confighandler.WriteConfig(path.Join(envCpath, "config.yml"), *le, 0o644)
+}
+
+func (f *fclient) SelectEnv(env string) error {
+
+	le, err := GetEnvSession()
+	if err != nil {
+		return err
 	}
 
-	return c.SelectedEnvs[dir], nil
+	return le.SetEnv(env)
+}
+
+func (f *fclient) CurrentEnv() (string, error) {
+	le, err := GetEnvSession()
+	if err != nil {
+		return "", err
+	}
+
+	return le.GetActiveEnv()
 }

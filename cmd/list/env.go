@@ -53,12 +53,7 @@ func listEnvironments(cmd *cobra.Command, args []string) error {
 		return fn.Errorf("[#] no environments found in team: %s", text.Blue(currentTeam))
 	}
 
-	env, _ := apic.EnsureEnv()
-	envName := ""
-	if env != nil {
-		envName = env.Name
-	}
-
+	envName, _ := apic.EnsureEnv()
 	header := table.Row{table.HeaderText("Display Name"), table.HeaderText("Name"), table.HeaderText("status")}
 	rows := make([]table.Row, 0)
 	for _, a := range envs {

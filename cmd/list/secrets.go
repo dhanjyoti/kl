@@ -42,13 +42,13 @@ var secretsCmd = &cobra.Command{
 			return
 		}
 
-		sec, err := apic.ListSecrets(currentTeam, currentEnv.Name)
+		sec, err := apic.ListSecrets(currentTeam, currentEnv)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		if err := printSecrets(apic, cmd, sec, currentEnv.Name); err != nil {
+		if err := printSecrets(apic, cmd, sec, currentEnv); err != nil {
 			fn.PrintError(err)
 			return
 		}
@@ -62,7 +62,7 @@ func printSecrets(apic apiclient.ApiClient, cmd *cobra.Command, secrets []apicli
 	}
 
 	if len(secrets) == 0 {
-		return fn.Errorf("[#] no secrets found in environemnt: %s", text.Blue(e.Name))
+		return fn.Errorf("[#] no secrets found in environemnt: %s", text.Blue(e))
 	}
 
 	header := table.Row{

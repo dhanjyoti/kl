@@ -3,19 +3,21 @@ package add
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"path"
+	"strings"
+
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
-	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 var mountCommand = &cobra.Command{
-	Use:   "config-mount [path]",
+	Use:   "mount [path]",
 	Short: "add file mount to your kl-config file by selection from the all the [ config | secret ] available in current environemnt",
 	Long: `
 	This command will help you to add mounts to your kl-config file.
@@ -44,7 +46,7 @@ var mountCommand = &cobra.Command{
 			filePath = "/home/kl/workspace/kl.yml"
 		}
 
-		klFile, err := fc.GetKlFile(filePath)
+		klFile, err := fc.GetKlFile()
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -105,7 +107,7 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 			fn.PrintError(err)
 			return err
 		}
-		configs, e := apic.ListConfigs(currentTeam, currentEnv.Name)
+		configs, e := apic.ListConfigs(currentTeam, currentEnv)
 
 		if e != nil {
 			return e
@@ -128,7 +130,7 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 			fn.PrintError(err)
 			return err
 		}
-		secrets, e := apic.ListSecrets(currentTeam, currentEnv.Name)
+		secrets, e := apic.ListSecrets(currentTeam, currentEnv)
 
 		if e != nil {
 			return e
@@ -195,17 +197,25 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 	}
 
 	spinner.Client.Pause()
-	fn.Printf("path of the config file, (eg: /tmp/sample): ")
-	path, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	fn.Printf("path of the config file, (eg: /tmp/sample): $kl_mounts/")
+	pth, err := bufio.NewReader(os.Stdin).ReadString('\n')
 	if err != nil {
 		fn.PrintError(err)
 	}
-	path = strings.TrimSpace(path)
+	pth = strings.TrimSpace(pth)
 	defer spinner.Client.Resume()
+
+	if pth == "" {
+		pth = "/tmp/sample"
+	}
+
+	if !strings.HasPrefix(pth, "$kl_mounts") {
+		pth = path.Join("$kl_mounts", pth)
+	}
 
 	matchedIndex := -1
 	for i, fe := range klFile.Mounts {
-		if fe.Path == path {
+		if fe.Path == pth {
 			matchedIndex = i
 		}
 	}
@@ -215,21 +225,21 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 	if matchedIndex == -1 {
 		fe = append(fe, fileclient.FileEntry{
 			Type: cOrs,
-			Path: path,
+			Path: pth,
 			Name: selectedItem.Name,
 			Key:  *key,
 		})
 	} else {
 		fe[matchedIndex] = fileclient.FileEntry{
 			Type: cOrs,
-			Path: path,
+			Path: pth,
 			Name: selectedItem.Name,
 			Key:  *key,
 		}
 	}
 
 	klFile.Mounts.AddMounts(fe)
-	if err := fc.WriteKLFile(klFile); err != nil {
+	if err := klFile.Save(); err != nil {
 		return fn.NewE(err)
 	}
 

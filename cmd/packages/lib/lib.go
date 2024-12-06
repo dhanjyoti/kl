@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"github.com/kloudlite/kl/cmd/packages"
 	"github.com/spf13/cobra"
 )
 
@@ -18,5 +17,4 @@ func init() {
 	Cmd.AddCommand(listCmd)
 	Cmd.AddCommand(addCmd)
 	Cmd.AddCommand(rmCmd)
-	Cmd.AddCommand(packages.PackageSearchCmd)
 }

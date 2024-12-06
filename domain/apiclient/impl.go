@@ -10,6 +10,7 @@ type apiClient struct {
 }
 
 type ApiClient interface {
+	GetFileClient() fileclient.FileClient
 	ListTeams() ([]Team, error)
 	GetHostDNSSuffix() (string, error)
 
@@ -33,7 +34,7 @@ type ApiClient interface {
 
 	ListEnvs(teamName string) ([]Env, error)
 	GetEnvironment(teamName, envName string) (*Env, error)
-	EnsureEnv() (*fileclient.Env, error)
+	EnsureEnv() (string, error)
 	CloneEnv(teamName, envName, newEnvName, clusterName string) (*Env, error)
 	UpdateEnvironment(teamName string, env *Env, isSuspend bool) error
 	CheckEnvName(teamName, envName string) (bool, error)
@@ -51,6 +52,10 @@ type ApiClient interface {
 	GetSecret(teamName string, secretName string) (*Secret, error)
 
 	RemoveAllIntercepts(options ...fn.Option) error
+}
+
+func (a *apiClient) GetFileClient() fileclient.FileClient {
+	return a.fc
 }
 
 func New() (ApiClient, error) {

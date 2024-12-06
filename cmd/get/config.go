@@ -48,7 +48,7 @@ var configCmd = &cobra.Command{
 				fn.PrintError(err)
 				return
 			}
-			configs, err := apic.ListConfigs(currentTeam, currentEnv.Name)
+			configs, err := apic.ListConfigs(currentTeam, currentEnv)
 			if err != nil {
 				fn.PrintError(err)
 				return
@@ -78,7 +78,7 @@ var configCmd = &cobra.Command{
 			return
 		}
 
-		config, err := apic.GetConfig(currentTeamName, currentEnvName.Name, configName)
+		config, err := apic.GetConfig(currentTeamName, currentEnvName, configName)
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -134,4 +134,5 @@ func printConfig(config *apiclient.Config, cmd *cobra.Command) error {
 
 func init() {
 	configCmd.Flags().StringP("output", "o", "table", "json | yaml")
+	configCmd.Aliases = append(configCmd.Aliases, "conf")
 }

@@ -7,10 +7,15 @@ import (
 	"runtime"
 
 	"github.com/kloudlite/kl/cmd/auth"
+	"github.com/kloudlite/kl/cmd/get"
 	"github.com/kloudlite/kl/cmd/initp"
-	"github.com/kloudlite/kl/cmd/lib"
-	"github.com/kloudlite/kl/cmd/packages"
+	"github.com/kloudlite/kl/cmd/list"
+	"github.com/kloudlite/kl/cmd/packages/lib"
+	"github.com/kloudlite/kl/cmd/packages/pkg"
+	"github.com/kloudlite/kl/cmd/packages/shell"
+	"github.com/kloudlite/kl/cmd/runner/add"
 	set_base_url "github.com/kloudlite/kl/cmd/set-base-url"
+	"github.com/kloudlite/kl/cmd/use"
 	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/flags"
 	"github.com/spf13/cobra"
@@ -31,24 +36,30 @@ func init() {
 	rootCmd.AddCommand(set_base_url.Cmd)
 	rootCmd.AddCommand(initp.InitCommand)
 
+	rootCmd.AddCommand(use.Cmd)
+	rootCmd.AddCommand(list.Cmd)
+	rootCmd.AddCommand(get.Cmd)
+
 	if runtime.GOOS == constants.RuntimeWindows {
 		return
 	}
 
-	rootCmd.AddCommand(packages.Cmd)
+	rootCmd.AddCommand(pkg.Cmd)
 	rootCmd.AddCommand(lib.Cmd)
+	rootCmd.AddCommand(shell.Cmd)
+
+	rootCmd.AddCommand(add.Command)
+
+	// Not Required for now
+	// rootCmd.AddCommand(env.Cmd)
 
 	if runtime.GOOS == constants.RuntimeDarwin {
 		return
 	}
 
-	// rootCmd.AddCommand(list.Cmd)
-	// rootCmd.AddCommand(get.Cmd)
 	// rootCmd.AddCommand(box.BoxCmd)
 
-	// rootCmd.AddCommand(use.Cmd)
 	// rootCmd.AddCommand(clone.Cmd)
-	// rootCmd.AddCommand(env.Cmd)
 	// rootCmd.AddCommand(runner.AttachCommand)
 	//
 	// rootCmd.AddCommand(intercept.Cmd)
@@ -56,7 +67,6 @@ func init() {
 	// rootCmd.AddCommand(cluster.Cmd)
 	// rootCmd.AddCommand(expose.Cmd)
 	//
-	// rootCmd.AddCommand(add.Command)
 	// rootCmd.AddCommand(status.Cmd)
 	// rootCmd.AddCommand(packages.Cmd)
 	// rootCmd.AddCommand(packages.LibCmd)

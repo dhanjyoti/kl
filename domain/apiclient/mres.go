@@ -83,7 +83,7 @@ func (apic *apiClient) GetMresConfigValues(teamName string) (map[string]string, 
 	}
 
 	respData, err := klFetch("cli_getMresOutputKeyValues", map[string]any{
-		"envName": currentEnv.Name,
+		"envName": currentEnv,
 		"keyrefs": func() []map[string]string {
 			var keyrefs []map[string]string
 			for _, m := range kt.EnvVars.GetMreses() {

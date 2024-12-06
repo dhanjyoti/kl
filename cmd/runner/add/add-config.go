@@ -55,7 +55,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 		filePath = "/home/kl/workspace/kl.yml"
 	}
 
-	klFile, err := fc.GetKlFile(filePath)
+	klFile, err := fc.GetKlFile()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -70,7 +70,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err)
 	}
 
-	configs, err := apic.ListConfigs(currentTeam, currentEnv.Name)
+	configs, err := apic.ListConfigs(currentTeam, currentEnv)
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -234,7 +234,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 
 	klFile.EnvVars.AddResTypes(currConfigs, fileclient.Res_config)
 
-	err = fc.WriteKLFile(*klFile)
+	err = klFile.Save()
 	if err != nil {
 		return fn.NewE(err)
 	}
