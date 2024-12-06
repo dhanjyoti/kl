@@ -21,8 +21,10 @@ type FileClient interface {
 	GetDevice() (*DeviceContext, error)
 	SetDevice(device *DeviceContext) error
 
-	WriteKLFile(fileObj KLFileType) error
 	GetKlFile() (*KLFileType, error)
+
+	GetLockfile() (*Lockfile, error)
+
 	SelectEnv(ev Env) error
 	SelectEnvOnPath(pth string, ev Env) error
 	EnvOfPath(pth string) (*Env, error)

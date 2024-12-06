@@ -1,4 +1,4 @@
-package lib
+package packages
 
 import (
 	"github.com/kloudlite/kl/domain/fileclient"
@@ -11,24 +11,19 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "list installed libraries",
+	Short: "list installed packages",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := listLibs(cmd, args); err != nil {
+		if err := listPackages(cmd, args); err != nil {
 			fn.PrintError(err)
 			return
 		}
 	},
 }
 
-func listLibs(cmd *cobra.Command, _ []string) error {
+func listPackages(cmd *cobra.Command, _ []string) error {
 	fc, err := fileclient.New()
 	if err != nil {
 		return functions.NewE(err)
-	}
-
-	l, err := fc.GetLockfile()
-	if err != nil {
-		return err
 	}
 
 	kt, err := fc.GetKlFile()
@@ -37,19 +32,18 @@ func listLibs(cmd *cobra.Command, _ []string) error {
 	}
 
 	header := table.Row{
-		table.HeaderText("libraries"),
-		table.HeaderText("nixpkgs"),
+		table.HeaderText("packages"),
 	}
 
 	rows := make([]table.Row, 0)
 
-	for _, v := range kt.Libraries {
-		rows = append(rows, table.Row{v, l.Libraries[v]})
+	for _, v := range kt.Packages {
+		rows = append(rows, table.Row{v})
 	}
 
 	fn.Println(table.Table(&header, rows, cmd))
 
-	table.TotalResults(len(kt.Libraries), true)
+	table.TotalResults(len(kt.Packages), true)
 	return nil
 }
 

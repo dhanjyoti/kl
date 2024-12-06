@@ -1,6 +1,7 @@
 package fileclient
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -25,6 +26,44 @@ type KLFileType struct {
 	// packagesMap  map[string]int `json:"-"`
 	// librariesMap map[string]int `json:"-"`
 	// ConfigFile   string         `json:"-"`
+}
+
+type HashData map[string]string
+
+type Lockfile struct {
+	Packages  HashData `json:"packages" yaml:"packages"`
+	Libraries HashData `json:"libraries" yaml:"libraries"`
+}
+
+func (k *Lockfile) Save() error {
+	if k == nil {
+		return fmt.Errorf("lockfile is nil")
+	}
+
+	if err := confighandler.WriteConfig(fmt.Sprintf("%s.lock", getConfigPath()), *k, 0o644); err != nil {
+		fn.PrintError(err)
+		return functions.NewE(err)
+	}
+
+	return nil
+}
+
+func (c *fclient) GetLockfile() (*Lockfile, error) {
+	filePath := getConfigPath()
+
+	kllockfile, err := confighandler.ReadConfig[Lockfile](fmt.Sprintf("%s.lock", filePath))
+	if err != nil {
+		if !errors.Is(err, confighandler.ErrKlFileNotExists) {
+			return nil, fn.NewE(err, "failed to read lockfile")
+		}
+
+		return &Lockfile{
+			Packages:  HashData{},
+			Libraries: HashData{},
+		}, nil
+	}
+
+	return kllockfile, nil
 }
 
 func (k *KLFileType) Save() error {

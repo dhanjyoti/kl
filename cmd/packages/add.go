@@ -2,13 +2,10 @@ package packages
 
 import (
 	"fmt"
-	"slices"
 
-	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"github.com/kloudlite/kl/pkg/ui/spinner"
+	"github.com/kloudlite/kl/pkg/nixpkghandler"
 
 	"github.com/spf13/cobra"
 )
@@ -22,27 +19,19 @@ var addCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		apic, err := apiclient.New()
-		if err != nil {
+
+		if err := addPackages(fc, cmd, args); err != nil {
 			fn.PrintError(err)
 			return
 		}
-		if err := addPackages(apic, fc, cmd, args); err != nil {
-			fn.PrintError(err)
-			return
-		}
+
 	},
 }
 
-func addPackages(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Command, args []string) error {
+func addPackages(fc fileclient.FileClient, cmd *cobra.Command, args []string) error {
 	fc, err := fileclient.New()
 	if err != nil {
 		return fn.NewE(err)
-	}
-
-	klConf, err := fc.GetKlFile()
-	if err != nil {
-		return functions.NewE(err)
 	}
 
 	name := fn.ParseStringFlag(cmd, "name")
@@ -51,93 +40,28 @@ func addPackages(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.
 	}
 
 	if name == "" {
-		return functions.Error("name is required")
+		return fn.Error("name is required")
 	}
 
-	name, hashpkg, err := Resolve(cmd.Context(), name)
+	pc, err := nixpkghandler.New(cmd)
 	if err != nil {
-		return functions.NewE(err)
+		return fn.NewE(err)
 	}
 
-	spinner.Client.Pause()
-	_, err = fn.Exec(fmt.Sprintf("nix shell nixpkgs/%s --command echo downloaded", hashpkg), nil)
+	name, hashpkg, err := pc.Find(name)
 	if err != nil {
-		return functions.NewE(err)
-	}
-	spinner.Client.Resume()
-	if slices.Contains(klConf.Packages, name) {
-		return nil
+		return fn.NewE(err)
 	}
 
-	klConf.Packages = append(klConf.Packages, name)
-	err = fc.WriteKLFile(*klConf)
-	if err != nil {
-		return functions.NewE(err)
+	// download and update lockfile
+	if err := pc.AddPackage(name, hashpkg); err != nil {
+		return fn.NewE(err)
 	}
 
 	fn.Println(fmt.Sprintf("Package %s is added successfully", name))
-
 	return nil
 }
 
 func init() {
 	addCmd.Flags().StringP("name", "n", "", "name of the package to install")
-}
-
-var addLibCmd = &cobra.Command{
-	Use:   "add",
-	Short: "add new library",
-	Run: func(cmd *cobra.Command, args []string) {
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-		if err := addLibraries(fc, cmd, args); err != nil {
-			fn.PrintError(err)
-			return
-		}
-	},
-}
-
-func addLibraries(fc fileclient.FileClient, cmd *cobra.Command, args []string) error {
-	fc, err := fileclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	klConf, err := fc.GetKlFile()
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	name := fn.ParseStringFlag(cmd, "name")
-	if name == "" && len(args) > 0 {
-		name = args[0]
-	}
-
-	if name == "" {
-		return functions.Error("name is required")
-	}
-
-	name, hashpkg, err := Resolve(cmd.Context(), name)
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	spinner.Client.Pause()
-	_, err = fn.Exec(fmt.Sprintf("nix shell nixpkgs/%s --command echo downloaded", hashpkg), nil)
-	if err != nil {
-		return functions.NewE(err)
-	}
-	spinner.Client.Resume()
-	klConf.Libraries = append(klConf.Libraries, name)
-	err = fc.WriteKLFile(*klConf)
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	fn.Println(fmt.Sprintf("Library %s is added successfully", name))
-
-	return nil
 }

@@ -8,7 +8,8 @@ import (
 
 	"github.com/kloudlite/kl/cmd/auth"
 	"github.com/kloudlite/kl/cmd/initp"
-	packages "github.com/kloudlite/kl/cmd/lib"
+	"github.com/kloudlite/kl/cmd/lib"
+	"github.com/kloudlite/kl/cmd/packages"
 	set_base_url "github.com/kloudlite/kl/cmd/set-base-url"
 	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/flags"
@@ -35,6 +36,7 @@ func init() {
 	}
 
 	rootCmd.AddCommand(packages.Cmd)
+	rootCmd.AddCommand(lib.Cmd)
 
 	if runtime.GOOS == constants.RuntimeDarwin {
 		return

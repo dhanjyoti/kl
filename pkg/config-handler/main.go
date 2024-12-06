@@ -1,6 +1,7 @@
 package confighandler
 
 import (
+	"errors"
 	"io/fs"
 	"os"
 
@@ -14,7 +15,10 @@ func ReadConfig[T any](path string) (*T, error) {
 	var v T
 	b, err := os.ReadFile(path)
 	if err != nil {
-		return nil, ErrKlFileNotExists
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, ErrKlFileNotExists
+		}
+		return nil, err
 	}
 	if err := yaml.Unmarshal(b, &v); err != nil {
 		return nil, fn.NewE(err)

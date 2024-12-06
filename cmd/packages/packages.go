@@ -6,7 +6,7 @@ import (
 
 var Cmd = &cobra.Command{
 	Use:   "pkg",
-	Short: "packages util to manage nix packages of kl box",
+	Short: "packages util to manage nix packages of kl shell",
 }
 
 func init() {
@@ -16,5 +16,5 @@ func init() {
 	Cmd.AddCommand(listCmd)
 	Cmd.AddCommand(addCmd)
 	Cmd.AddCommand(rmCmd)
-	Cmd.AddCommand(searchCmd)
+	Cmd.AddCommand(PackageSearchCmd)
 }

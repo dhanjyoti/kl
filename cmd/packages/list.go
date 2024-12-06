@@ -26,6 +26,11 @@ func listPackages(cmd *cobra.Command, _ []string) error {
 		return functions.NewE(err)
 	}
 
+	l, err := fc.GetLockfile()
+	if err != nil {
+		return err
+	}
+
 	kt, err := fc.GetKlFile()
 	if err != nil {
 		return functions.NewE(err)
@@ -33,12 +38,13 @@ func listPackages(cmd *cobra.Command, _ []string) error {
 
 	header := table.Row{
 		table.HeaderText("packages"),
+		table.HeaderText("nixpkgs"),
 	}
 
 	rows := make([]table.Row, 0)
 
 	for _, v := range kt.Packages {
-		rows = append(rows, table.Row{v})
+		rows = append(rows, table.Row{v, l.Packages[v]})
 	}
 
 	fn.Println(table.Table(&header, rows, cmd))

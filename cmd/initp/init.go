@@ -25,11 +25,6 @@ var InitCommand = &cobra.Command{
 }
 
 func handleInit() error {
-	fc, err := fileclient.New()
-	if err != nil {
-		return err
-	}
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -62,7 +57,7 @@ func handleInit() error {
 		Packages: []string{"neovim", "git"},
 	}
 
-	if err := fc.WriteKLFile(newKlFile); err != nil {
+	if err := newKlFile.Save(); err != nil {
 		fn.PrintError(err)
 	} else {
 		fn.Printf(text.Green("workspace initialized successfully.\n"))
