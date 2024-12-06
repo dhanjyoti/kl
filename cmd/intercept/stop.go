@@ -43,7 +43,7 @@ Examples:
 			return
 		}
 
-		apps, err := apic.ListApps(currentAcc, currentEnv.Name)
+		apps, err := apic.ListApps(currentAcc, currentEnv)
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -68,21 +68,12 @@ Examples:
 			return
 		}
 
-		if err := apic.InterceptApp(appToStop, false, nil, currentEnv.Name, []fn.Option{
+		if err := apic.InterceptApp(appToStop, false, nil, currentEnv, []fn.Option{
 			fn.MakeOption("appName", appToStop.Metadata.Name),
 		}...); err != nil {
 			fn.PrintError(err)
 			return
 		}
-
-		//k3sClient, err := k3s.NewClient()
-		//if err != nil {
-		//	return
-		//}
-
-		//if err = k3sClient.StartAppInterceptService(appToStop.Spec.Intercept.PortMappings, false); err != nil {
-		//	return
-		//}
 
 		fn.Log("intercepted app stopped successfully")
 	},

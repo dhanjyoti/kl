@@ -53,7 +53,7 @@ func exposePorts(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := fc.WriteKLFile(*klFile); err != nil {
+	if err := klFile.Save(); err != nil {
 		return functions.NewE(err)
 	}
 

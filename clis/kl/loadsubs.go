@@ -4,17 +4,23 @@ import (
 
 	// "github.com/kloudlite/kl/cmd/box"
 
+	"os/exec"
 	"runtime"
 
 	"github.com/kloudlite/kl/cmd/auth"
+	"github.com/kloudlite/kl/cmd/cluster"
+	"github.com/kloudlite/kl/cmd/expose"
 	"github.com/kloudlite/kl/cmd/get"
 	"github.com/kloudlite/kl/cmd/initp"
+	"github.com/kloudlite/kl/cmd/intercept"
+	"github.com/kloudlite/kl/cmd/kubectl"
 	"github.com/kloudlite/kl/cmd/list"
 	"github.com/kloudlite/kl/cmd/packages/lib"
 	"github.com/kloudlite/kl/cmd/packages/pkg"
 	"github.com/kloudlite/kl/cmd/packages/shell"
 	"github.com/kloudlite/kl/cmd/runner/add"
 	set_base_url "github.com/kloudlite/kl/cmd/set-base-url"
+	"github.com/kloudlite/kl/cmd/status"
 	"github.com/kloudlite/kl/cmd/use"
 	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/flags"
@@ -50,8 +56,14 @@ func init() {
 
 	rootCmd.AddCommand(add.Command)
 
+	rootCmd.AddCommand(intercept.Cmd)
+	rootCmd.AddCommand(expose.Cmd)
+
+	rootCmd.AddCommand(status.Cmd)
+
 	// Not Required for now
 	// rootCmd.AddCommand(env.Cmd)
+	// rootCmd.AddCommand(clone.Cmd)
 
 	if runtime.GOOS == constants.RuntimeDarwin {
 		return
@@ -59,17 +71,10 @@ func init() {
 
 	// rootCmd.AddCommand(box.BoxCmd)
 
-	// rootCmd.AddCommand(clone.Cmd)
 	// rootCmd.AddCommand(runner.AttachCommand)
 	//
-	// rootCmd.AddCommand(intercept.Cmd)
 	//
-	// rootCmd.AddCommand(cluster.Cmd)
-	// rootCmd.AddCommand(expose.Cmd)
-	//
-	// rootCmd.AddCommand(status.Cmd)
-	// rootCmd.AddCommand(packages.Cmd)
-	// rootCmd.AddCommand(packages.LibCmd)
+	rootCmd.AddCommand(cluster.Cmd)
 	//
 	// rootCmd.AddCommand(connect.Command)
 	// rootCmd.AddCommand(v2Shell.Command)
@@ -77,13 +82,13 @@ func init() {
 	// rootCmd.AddCommand(v2Pkg.Command)
 	// rootCmd.AddCommand(v2Lib.Command)
 
-	// if flags.IsDev() {
-	// 	if _, err := exec.LookPath("k9s"); err == nil {
-	// 		rootCmd.AddCommand(kubectl.K9sCmd)
-	// 	}
-	//
-	// 	if _, err := exec.LookPath("kubectl"); err == nil {
-	// 		rootCmd.AddCommand(kubectl.KubectlCmd)
-	// 	}
-	// }
+	if flags.IsDev() {
+		if _, err := exec.LookPath("k9s"); err == nil {
+			rootCmd.AddCommand(kubectl.K9sCmd)
+		}
+
+		if _, err := exec.LookPath("kubectl"); err == nil {
+			rootCmd.AddCommand(kubectl.KubectlCmd)
+		}
+	}
 }

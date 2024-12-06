@@ -37,17 +37,17 @@ func cleanCluster(cmd *cobra.Command) error {
 		return err
 	}
 
-	data, err := fileclient.GetExtraData()
+	data, err := fileclient.GetSessionData()
 	if err != nil {
 		return fn.NewE(err)
 	}
 
-	fn.Printf(text.Yellow(fmt.Sprintf("this will delete k3s cluster for team %s and all its data and volumes. Do you want to continue? (y/N): ", data.SelectedTeam)))
+	fn.Printf(text.Yellow(fmt.Sprintf("this will delete k3s cluster for team %s and all its data and volumes. Do you want to continue? (y/N): ", data.Team)))
 	if !fn.Confirm("Y", "N") {
 		return nil
 	}
 
-	clusters, err := apic.GetClustersOfTeam(data.SelectedTeam)
+	clusters, err := apic.GetClustersOfTeam(data.Team)
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -57,19 +57,18 @@ func cleanCluster(cmd *cobra.Command) error {
 	}
 	for _, c := range clusters {
 		if c.Metadata.Labels["kloudlite.io/local-uuid"] == wgConfig.UUID {
-			if err := apic.DeleteCluster(data.SelectedTeam, c.Metadata.Name); err != nil {
+			if err := apic.DeleteCluster(data.Team, c.Metadata.Name); err != nil {
 				return fn.NewE(err)
 			}
-			if err = fc.DeleteClusterData(data.SelectedTeam); err != nil {
+			if err = fc.DeleteClusterData(data.Team); err != nil {
 				return fn.NewE(err)
 			}
 			if err = k3sClient.RemoveClusterVolume(c.Metadata.Name); err != nil {
 				return fn.NewE(err)
 			}
-			fn.Log(fmt.Sprintf("cluster %s of team %s deleted", c.Metadata.Name, data.SelectedTeam))
+			fn.Log(fmt.Sprintf("cluster %s of team %s deleted", c.Metadata.Name, data.Team))
 			break
 		}
 	}
 	return nil
-
 }

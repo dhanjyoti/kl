@@ -48,21 +48,25 @@ func startK3sServer(cmd *cobra.Command) error {
 		return functions.NewE(err)
 	}
 
-	extraData, err := fileclient.GetExtraData()
-	if (err != nil && os.IsNotExist(err)) || extraData.SelectedTeam == "" {
+	sd, err := fileclient.GetSessionData()
+	if err != nil {
+		return err
+	}
+
+	if (err != nil && os.IsNotExist(err)) || sd.Team == "" {
 		currentTeam, err := fc.CurrentTeamName()
 		if err != nil {
 			return functions.NewE(err)
 		}
-		extraData.SelectedTeam = currentTeam
-		if err := fileclient.SaveExtraData(extraData); err != nil {
+		sd.Team = currentTeam
+		if err := sd.Save(); err != nil {
 			return functions.NewE(err)
 		}
 	} else if err != nil {
 		return functions.NewE(err)
 	}
 
-	if extraData.SelectedTeam == "" {
+	if sd.Team == "" {
 
 		teams, err := apic.ListTeams()
 		if err != nil {
@@ -90,16 +94,16 @@ func startK3sServer(cmd *cobra.Command) error {
 		//	}
 		//}
 
-		extraData.SelectedTeam = selectedTeam.Metadata.Name
+		sd.Team = selectedTeam.Metadata.Name
 
-		err = fileclient.SaveExtraData(extraData)
-		if err != nil {
+		if err := sd.Save(); err != nil {
 			return functions.NewE(err)
 		}
+
 	}
 
-	if extraData.SelectedTeam != teamName && teamName != "" && extraData.SelectedTeam != "" {
-		functions.Logf(text.Yellow(fmt.Sprintf("[#] local cluster is already running for team %s, do you want to stop it and start a new cluster for team %s? [y/N] ", teamName, extraData.SelectedTeam)))
+	if sd.Team != teamName && teamName != "" && sd.Team != "" {
+		functions.Logf(text.Yellow(fmt.Sprintf("[#] local cluster is already running for team %s, do you want to stop it and start a new cluster for team %s? [y/N] ", teamName, sd.Team)))
 		if !functions.Confirm("Y", "N") {
 			return nil
 		}
@@ -108,12 +112,12 @@ func startK3sServer(cmd *cobra.Command) error {
 		}
 	}
 
-	_, err = apic.GetClusterConfig(extraData.SelectedTeam)
+	_, err = apic.GetClusterConfig(sd.Team)
 	if err != nil {
 		return err
 	}
 
-	if err = k.CreateClustersTeams(extraData.SelectedTeam); err != nil {
+	if err = k.CreateClustersTeams(sd.Team); err != nil {
 		return functions.NewE(err)
 	}
 	functions.Log("k3s server started. It will usually take a minute to come online")

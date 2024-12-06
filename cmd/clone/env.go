@@ -64,7 +64,7 @@ func envClone(cmd *cobra.Command, args []string) error {
 
 	if klFile.DefaultEnv == "" {
 		klFile.DefaultEnv = env.Metadata.Name
-		if err := fc.WriteKLFile(*klFile); err != nil {
+		if err := klFile.Save(); err != nil {
 			return err
 		}
 	}
@@ -86,7 +86,7 @@ func cloneEnv(apic apiclient.ApiClient, fc fileclient.FileClient, newEnvName str
 		return nil, fn.NewE(err)
 	}
 
-	env, err := apic.CloneEnv(currentTeam, oldEnv.Name, newEnvName, clusterName)
+	env, err := apic.CloneEnv(currentTeam, oldEnv, newEnvName, clusterName)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -96,15 +96,7 @@ func cloneEnv(apic apiclient.ApiClient, fc fileclient.FileClient, newEnvName str
 		return nil, fn.NewE(err)
 	}
 
-	//k3sClient, err := k3s.NewClient()
-	//if err != nil {
-	//	return nil, fn.NewE(err)
-	//}
-	//if err = k3sClient.RemoveAllIntercepts(); err != nil {
-	//	return nil, fn.NewE(err)
-	//}
-
-	persistSelectedEnv := func(e fileclient.Env) error {
+	persistSelectedEnv := func(e string) error {
 		err := fc.SelectEnv(e)
 		if err != nil {
 			return fn.NewE(err)
@@ -112,15 +104,7 @@ func cloneEnv(apic apiclient.ApiClient, fc fileclient.FileClient, newEnvName str
 		return nil
 	}
 
-	if err := persistSelectedEnv(fileclient.Env{
-		Name: env.Metadata.Name,
-		SSHPort: func() int {
-			if oldEnv == nil {
-				return 0
-			}
-			return oldEnv.SSHPort
-		}(),
-	}); err != nil {
+	if err := persistSelectedEnv(env.Metadata.Name); err != nil {
 		return nil, fn.NewE(err)
 	}
 	return env, nil

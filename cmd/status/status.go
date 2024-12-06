@@ -48,34 +48,33 @@ var Cmd = &cobra.Command{
 			return
 		}
 
-		data, err := fileclient.GetExtraData()
+		data, err := fileclient.GetSessionData()
 		if err == nil {
-			if data.SelectedTeam != "" {
-				fn.Log(fmt.Sprint(text.Bold(text.Blue("Team: ")), data.SelectedTeam))
+			if data.Team != "" {
+				fn.Log(fmt.Sprint(text.Bold(text.Blue("Team: ")), data.Team))
 			}
 		}
 
 		e, err := apic.EnsureEnv()
 		selectedEnv := ""
 		if err == nil {
-			selectedEnv = e.Name
+			selectedEnv = e
 		} else if errors.Is(err, fileclient.NoEnvSelected) {
-			filePath := fn.ParseKlFile(cmd)
-			klFile, err := fc.GetKlFile(filePath)
+			klFile, err := fc.GetKlFile()
 			if err != nil {
 				fn.PrintError(err)
 				return
 			}
 			selectedEnv = klFile.DefaultEnv
 		}
-		ev, err := apic.GetEnvironment(data.SelectedTeam, selectedEnv)
+		ev, err := apic.GetEnvironment(data.Team, selectedEnv)
 		if err == nil {
 			r := text.Yellow("offline")
 			if ev.ClusterName != "" {
 				if ev.IsArchived {
 					r = text.Yellow("archived")
 				} else {
-					cluster, err := apic.GetCluster(data.SelectedTeam, ev.ClusterName)
+					cluster, err := apic.GetCluster(data.Team, ev.ClusterName)
 					if err != nil {
 						fn.PrintError(err)
 						return
@@ -95,7 +94,7 @@ var Cmd = &cobra.Command{
 
 		fn.Log(text.Bold("\nCluster Status"))
 
-		config, err := fc.GetClusterConfig(data.SelectedTeam)
+		config, err := fc.GetClusterConfig(data.Team)
 		if err == nil {
 			fn.Log("Name: ", text.Blue(config.ClusterName))
 
