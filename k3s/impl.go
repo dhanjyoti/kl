@@ -389,7 +389,7 @@ func (c *client) EnsureKloudliteNetwork() error {
 	return nil
 }
 
-func (c *client) StartAppInterceptService(ports []apiclient.AppPort, toStart bool) error {
+func (c *client) StartAppInterceptService(ports []apiclient.ServicePort, toStart bool) error {
 	defer spinner.Client.UpdateMessage("starting intercept service")()
 	if err := c.EnsureKloudliteNetwork(); err != nil {
 		return fn.NewE(err)
@@ -430,13 +430,13 @@ func (c *client) StartAppInterceptService(ports []apiclient.AppPort, toStart boo
 
 		newPorts = append(newPorts,
 			fileclient.Port{
-				Name:       fmt.Sprintf("udp-%d", p.AppPort),
+				Name:       fmt.Sprintf("udp-%d", p.ServicePort),
 				Port:       p.DevicePort,
 				Protocol:   "UDP",
 				TargetPort: p.DevicePort,
 			},
 			fileclient.Port{
-				Name:       fmt.Sprintf("tcp-%d", p.AppPort),
+				Name:       fmt.Sprintf("tcp-%d", p.ServicePort),
 				Port:       p.DevicePort,
 				Protocol:   "TCP",
 				TargetPort: p.DevicePort,

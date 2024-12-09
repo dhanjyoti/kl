@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/kloudlite/kl/flags"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/spf13/cobra"
 )
@@ -12,6 +13,7 @@ import (
 var KubectlCmd = &cobra.Command{
 	Use:                "kubectl",
 	Short:              "kubectl is a command line tool for controlling Kubernetes clusters",
+	Hidden:             !flags.IsDev(),
 	DisableFlagParsing: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		kconfPath, err := GetPath(cmd)

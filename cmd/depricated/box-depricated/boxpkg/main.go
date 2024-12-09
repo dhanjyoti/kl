@@ -91,9 +91,10 @@ func NewClient(cmd *cobra.Command, args []string) (BoxClient, error) {
 		return nil, fn.NewE(err)
 	}
 
-	env, err := fc.EnvOfPath(cwd)
+	env := &fileclient.Env{}
+	env, err = fc.EnvOfPath(cwd)
 	if err != nil && errors.Is(err, fileclient.NoEnvSelected) {
-		env := &fileclient.Env{
+		env = &fileclient.Env{
 			SSHPort: 0,
 		}
 		if klFile.DefaultEnv != "" && klFile.TeamName != "" {
@@ -103,7 +104,6 @@ func NewClient(cmd *cobra.Command, args []string) (BoxClient, error) {
 			}
 			env.Name = environment.Metadata.Name
 		}
-
 		data, err := fileclient.GetExtraData()
 		if err != nil {
 			return nil, fn.NewE(err)

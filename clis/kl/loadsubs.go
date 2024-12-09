@@ -82,13 +82,11 @@ func init() {
 	// rootCmd.AddCommand(v2Pkg.Command)
 	// rootCmd.AddCommand(v2Lib.Command)
 
-	if flags.IsDev() {
-		if _, err := exec.LookPath("k9s"); err == nil {
-			rootCmd.AddCommand(kubectl.K9sCmd)
-		}
+	if _, err := exec.LookPath("k9s"); err == nil {
+		rootCmd.AddCommand(kubectl.K9sCmd)
+	}
 
-		if _, err := exec.LookPath("kubectl"); err == nil {
-			rootCmd.AddCommand(kubectl.KubectlCmd)
-		}
+	if _, err := exec.LookPath("kubectl"); err == nil {
+		rootCmd.AddCommand(kubectl.KubectlCmd)
 	}
 }
