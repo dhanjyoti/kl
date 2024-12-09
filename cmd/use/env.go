@@ -40,7 +40,7 @@ func switchEnv(*cobra.Command, []string) error {
 		return err
 	}
 
-	currentTeam, err := apic.GetFileClient().CurrentTeamName()
+	currentTeam, err := apic.GetFileClient().GetTeam()
 	if err != nil {
 		return fn.NewE(err)
 	}

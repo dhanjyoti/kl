@@ -98,7 +98,7 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 
 	items := make([]apiclient.ConfigORSecret, 0)
 	if cOrs == fileclient.ConfigType {
-		currentTeam, err := fc.CurrentTeamName()
+		currentTeam, err := fc.GetWsTeam()
 		if err != nil {
 			return err
 		}
@@ -121,7 +121,7 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 		}
 
 	} else {
-		currentTeam, err := fc.CurrentTeamName()
+		currentTeam, err := fc.GetWsTeam()
 		if err != nil {
 			return err
 		}

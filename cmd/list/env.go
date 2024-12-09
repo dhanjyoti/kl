@@ -37,7 +37,7 @@ func listEnvironments(cmd *cobra.Command, args []string) error {
 		return functions.NewE(err)
 	}
 
-	currentTeam, err := fc.CurrentTeamName()
+	currentTeam, err := fc.GetTeam()
 	if err != nil {
 		return functions.NewE(err)
 	}

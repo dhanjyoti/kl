@@ -14,7 +14,7 @@ type FileClient interface {
 	GetHostWgConfig() (string, error)
 	GetWGConfig() (*WGConfig, error)
 	SetWGConfig(config string) error
-	CurrentTeamName() (string, error)
+	// CurrentTeamName() (string, error)
 	Logout() error
 	GetK3sTracker() (*K3sTracker, error)
 	GetClusterConfig(team string) (*TeamClusterConfig, error)
@@ -30,6 +30,9 @@ type FileClient interface {
 
 	SelectEnv(ev string) error
 	CurrentEnv() (string, error)
+
+	GetTeam() (string, error)
+	GetWsTeam() (string, error)
 }
 
 func New() (FileClient, error) {

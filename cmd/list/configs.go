@@ -29,7 +29,7 @@ var configsCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		currentTeam, err := fc.CurrentTeamName()
+		currentTeam, err := fc.GetWsTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return

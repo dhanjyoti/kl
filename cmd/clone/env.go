@@ -76,7 +76,12 @@ func envClone(cmd *cobra.Command, args []string) error {
 }
 
 func cloneEnv(apic apiclient.ApiClient, fc fileclient.FileClient, newEnvName string, clusterName string) (*apiclient.Env, error) {
-	currentTeam, err := fc.CurrentTeamName()
+	sd, err := fc.GetSessionData()
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	activeTeam, err := sd.GetWsTeam()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -86,7 +91,7 @@ func cloneEnv(apic apiclient.ApiClient, fc fileclient.FileClient, newEnvName str
 		return nil, fn.NewE(err)
 	}
 
-	env, err := apic.CloneEnv(currentTeam, oldEnv, newEnvName, clusterName)
+	env, err := apic.CloneEnv(activeTeam, oldEnv, newEnvName, clusterName)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -111,12 +116,12 @@ func cloneEnv(apic apiclient.ApiClient, fc fileclient.FileClient, newEnvName str
 }
 
 func selectCluster(apic apiclient.ApiClient, fc fileclient.FileClient) (*apiclient.Cluster, error) {
-	currentTeam, err := fc.CurrentTeamName()
+	activeTeam, err := fc.GetTeam()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
 
-	c, err := apic.GetClustersOfTeam(currentTeam)
+	c, err := apic.GetClustersOfTeam(activeTeam)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -150,7 +155,7 @@ func selectCluster(apic apiclient.ApiClient, fc fileclient.FileClient) (*apiclie
 }
 
 func checkEnvNameAvailability(apic apiclient.ApiClient, fc fileclient.FileClient, envName string) (bool, error) {
-	currentTeam, err := fc.CurrentTeamName()
+	currentTeam, err := fc.GetTeam()
 	if err != nil {
 		return false, fn.NewE(err)
 	}

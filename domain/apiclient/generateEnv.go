@@ -52,7 +52,7 @@ func (apic *apiClient) GetLoadMaps() (map[string]string, MountMap, error) {
 		return nil, nil, err
 	}
 
-	teamName, err := sd.GetTeam()
+	teamName, err := sd.GetWsTeam()
 	if err != nil {
 		return nil, nil, err
 	}

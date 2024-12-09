@@ -38,7 +38,7 @@ func startIntercept(apic apiclient.ApiClient) error {
 		return err
 	}
 
-	team, err := sd.GetTeam()
+	team, err := sd.GetWsTeam()
 	if err != nil {
 		return err
 	}
@@ -105,8 +105,8 @@ func startIntercept(apic apiclient.ApiClient) error {
 
 	var ports []apiclient.ServicePort
 	ports = append(ports, apiclient.ServicePort{
-		ServicePort:   selectedService.Port,
-		DevicePort: devicePort,
+		ServicePort: selectedService.Port,
+		DevicePort:  devicePort,
 	})
 
 	//k3sClient, err := k3s.NewClient()

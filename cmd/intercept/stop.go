@@ -31,7 +31,7 @@ Examples:
 			return
 		}
 
-		currentAcc, err := fc.CurrentTeamName()
+		currentAcc, err := fc.GetWsTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return

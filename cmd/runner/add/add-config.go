@@ -44,15 +44,9 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err)
 	}
 
-	filePath := fn.ParseKlFile(cmd)
-
 	name := ""
 	if len(args) >= 1 {
 		name = args[0]
-	}
-
-	if filePath == "" {
-		filePath = "/home/kl/workspace/kl.yml"
 	}
 
 	klFile, err := fc.GetKlFile()
@@ -60,7 +54,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err)
 	}
 
-	currentTeam, err := fc.CurrentTeamName()
+	currentTeam, err := fc.GetWsTeam()
 	if err != nil {
 		return fn.NewE(err)
 	}

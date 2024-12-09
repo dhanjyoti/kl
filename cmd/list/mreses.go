@@ -34,7 +34,7 @@ var mresCmd = &cobra.Command{
 			return
 		}
 
-		currentTeam, err := fc.CurrentTeamName()
+		currentTeam, err := fc.GetWsTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return

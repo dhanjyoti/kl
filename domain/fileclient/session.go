@@ -5,6 +5,7 @@ import (
 	"path"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/text"
 	"sigs.k8s.io/yaml"
 )
 
@@ -15,6 +16,7 @@ type DeviceData struct {
 }
 
 type SessionData struct {
+	fc      FileClient
 	Session string                `json:"session"`
 	Team    string                `json:"team,omitempty"`
 	Env     string                `json:"env,omitempty"`
@@ -49,6 +51,23 @@ func (s *SessionData) GetDevice() (*DeviceData, error) {
 	}
 
 	return nil, fn.Errorf("device not found")
+}
+
+func (s *SessionData) GetWsTeam() (string, error) {
+	if s.Team == "" {
+		return "", fn.Errorf("team not found")
+	}
+
+	kt, err := s.fc.GetKlFile()
+	if err != nil {
+		return "", err
+	}
+
+	if kt.TeamName != s.Team {
+		return "", fn.Errorf("selected team is not same as current working directory, please change selected team using %s", text.Blue("kl use team"))
+	}
+
+	return s.Team, nil
 }
 
 func (s *SessionData) GetTeam() (string, error) {

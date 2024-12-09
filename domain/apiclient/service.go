@@ -86,7 +86,7 @@ func (apic *apiClient) InterceptService(service *Service, status bool, ports []S
 		return functions.NewE(err)
 	}
 
-	teamName, err := sd.GetTeam()
+	teamName, err := sd.GetWsTeam()
 
 	options = append(options, fn.MakeOption("teamName", teamName))
 
