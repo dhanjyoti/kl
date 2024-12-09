@@ -12,11 +12,11 @@ import (
 	"time"
 
 	uuid "github.com/nu7hatch/gouuid"
-	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	"github.com/adrg/xdg"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/wg_vpn"
 
 	"sigs.k8s.io/yaml"
 )
@@ -53,6 +53,15 @@ type ExtraData struct {
 	BaseUrl         string    `json:"baseUrl"`
 	DnsHostSuffix   string    `json:"dnsHostSuffix"`
 	LastUpdateCheck time.Time `json:"lastUpdateCheck"`
+}
+
+func (ed *ExtraData) Save() error {
+	file, err := yaml.Marshal(ed)
+	if err != nil {
+		return functions.NewE(err)
+	}
+
+	return writeOnUserScope(ExtraDataFileName, file)
 }
 
 type Port struct {
@@ -137,8 +146,8 @@ func GetConfigFolder() (configFolder string, err error) {
 	return configPath, nil
 }
 
-func SaveBaseURL(url string) error {
-	extraData, err := GetExtraData()
+func (fc *fclient) SaveBaseURL(url string) error {
+	extraData, err := fc.getExtraData()
 	if err != nil {
 		return functions.NewE(err)
 	}
@@ -152,8 +161,8 @@ func SaveBaseURL(url string) error {
 	return writeOnUserScope(ExtraDataFileName, file)
 }
 
-func GetBaseURL() (string, error) {
-	extraData, err := GetExtraData()
+func (fc *fclient) GetBaseURL() (string, error) {
+	extraData, err := fc.getExtraData()
 	if err != nil {
 		return "", functions.NewE(err)
 	}
@@ -161,17 +170,12 @@ func GetBaseURL() (string, error) {
 	return extraData.BaseUrl, nil
 }
 
-func SaveExtraData(extraData *ExtraData) error {
-	file, err := yaml.Marshal(extraData)
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	return writeOnUserScope(ExtraDataFileName, file)
+func (fc *fclient) GetExtraData() (*ExtraData, error) {
+	return fc.getExtraData()
 }
 
-func GetExtraData() (*ExtraData, error) {
-	file, err := ReadFile(ExtraDataFileName)
+func (fc *fclient) getExtraData() (*ExtraData, error) {
+	file, err := readFile(ExtraDataFileName)
 	extraData := ExtraData{}
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
@@ -217,16 +221,6 @@ func (fc *fclient) GetDevice() (*DeviceData, error) {
 	return dData, nil
 }
 
-func GenerateWireGuardKeys() (wgtypes.Key, wgtypes.Key, error) {
-	privateKey, err := wgtypes.GeneratePrivateKey()
-	if err != nil {
-		return wgtypes.Key{}, wgtypes.Key{}, fn.Errorf("failed to generate private key: %w", err)
-	}
-	publicKey := privateKey.PublicKey()
-
-	return privateKey, publicKey, nil
-}
-
 func (c *fclient) GetHostWgConfig() (string, error) {
 	config, err := c.GetWGConfig()
 	if err != nil {
@@ -269,21 +263,21 @@ PersistentKeepalive = 25
 }
 
 func (fc *fclient) GetWGConfig() (*WGConfig, error) {
-	file, err := ReadFile(WGConfigFileName)
+	file, err := readFile(WGConfigFileName)
 	if err != nil {
 		u, err := uuid.NewV4()
 		if err != nil {
 			return nil, fn.NewE(err, "failed to generate uuid")
 		}
-		wgProxyPrivateKey, wgProxyPublicKey, err := GenerateWireGuardKeys()
+		wgProxyPrivateKey, wgProxyPublicKey, err := wg_vpn.GenerateWireGuardKeys()
 		if err != nil {
 			return nil, fn.NewE(err, "failed to generate wg keys")
 		}
-		hostPrivateKey, hostPublicKey, err := GenerateWireGuardKeys()
+		hostPrivateKey, hostPublicKey, err := wg_vpn.GenerateWireGuardKeys()
 		if err != nil {
 			return nil, fn.NewE(err, "failed to generate wg keys")
 		}
-		workSpacePrivateKey, workSpacePublicKey, err := GenerateWireGuardKeys()
+		workSpacePrivateKey, workSpacePublicKey, err := wg_vpn.GenerateWireGuardKeys()
 		if err != nil {
 			return nil, fn.NewE(err, "failed to generate wg keys")
 		}
@@ -326,7 +320,7 @@ func (fc *fclient) GetWGConfig() (*WGConfig, error) {
 }
 
 func (fc *fclient) GetK3sTracker() (*K3sTracker, error) {
-	file, err := ReadFile(K3sTrackerFileName)
+	file, err := readFile(K3sTrackerFileName)
 	if err != nil {
 		return nil, fn.NewE(err, "failed to read k3s tracker")
 	}
@@ -389,7 +383,7 @@ func writeOnUserScope(name string, data []byte) error {
 	return nil
 }
 
-func ReadFile(name string) ([]byte, error) {
+func readFile(name string) ([]byte, error) {
 	dir, err := GetConfigFolder()
 	if err != nil {
 		return nil, functions.NewE(err, "failed to get config folder")
@@ -408,37 +402,3 @@ func ReadFile(name string) ([]byte, error) {
 
 	return file, nil
 }
-
-//func writeInTmpDir(name string, data []byte) error {
-//	dir := ""
-//	s := strings.Split(name, "/")
-//
-//	for i := range s {
-//		if i == len(s)-1 {
-//			continue
-//		}
-//		dir = path.Join(dir, s[i])
-//	}
-//	if _, er := os.Stat(dir); errors.Is(er, os.ErrNotExist) {
-//		er := os.MkdirAll(dir, os.ModePerm)
-//		if er != nil {
-//			return er
-//		}
-//	}
-//
-//	filePath := path.Join(dir, s[len(s)-1])
-//
-//	if err := os.WriteFile(filePath, data, 0644); err != nil {
-//		return functions.NewE(err)
-//	}
-//
-//	if usr, ok := os.LookupEnv("SUDO_USER"); ok {
-//		if err := fn.ExecCmd(
-//			fmt.Sprintf("chown %s %s", usr, filePath), nil, false,
-//		); err != nil {
-//			return functions.NewE(err)
-//		}
-//	}
-//
-//	return nil
-//}

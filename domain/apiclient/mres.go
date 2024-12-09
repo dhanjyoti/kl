@@ -19,7 +19,7 @@ func (apic *apiClient) ListMreses(teamName string, envName string) ([]Mres, erro
 
 	respData, err := klFetch("cli_listImportedManagedResources", map[string]any{
 		"envName": envName,
-		"pq":      PaginationDefault,
+		"pq":      paginationDefault,
 	}, &cookie)
 	if err != nil {
 		return nil, fn.NewE(err)
@@ -46,7 +46,7 @@ func (apic *apiClient) ListMresKeys(teamName, envName, importedManagedResource s
 		return nil, fn.NewE(err)
 	}
 
-	s, err := GetFromResp[[]string](respData)
+	s, err := getFromResp[[]string](respData)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -102,7 +102,7 @@ func (apic *apiClient) GetMresConfigValues(teamName string) (map[string]string, 
 		return nil, fn.NewE(err)
 	}
 
-	fromResp, err := GetFromResp[[]MresResp](respData)
+	fromResp, err := getFromResp[[]MresResp](respData)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}

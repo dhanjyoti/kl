@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"path"
 
-	"github.com/kloudlite/kl/flags"
 	"github.com/kloudlite/kl/k3s"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/spf13/cobra"
@@ -15,7 +14,7 @@ import (
 var K9sCmd = &cobra.Command{
 	Use:                "k9s",
 	Short:              "k9s is a terminal UI for Kubernetes",
-	Hidden:             !flags.IsDev(),
+	Hidden:             true,
 	DisableFlagParsing: true,
 	Run: func(cmd *cobra.Command, args []string) {
 

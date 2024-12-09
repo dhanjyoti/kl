@@ -16,10 +16,6 @@ import (
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
-func KLFetch(method string, variables map[string]any, cookie *string, verbose ...bool) ([]byte, error) {
-	return klFetch(method, variables, cookie, verbose...)
-}
-
 func klFetch(method string, variables map[string]any, cookie *string, verbose ...bool) ([]byte, error) {
 	defer spinner.Client.UpdateMessage("loading please wait")()
 
@@ -141,7 +137,7 @@ func (apic *apiClient) GetHostDNSSuffix() (string, error) {
 	if err != nil {
 		return "", fn.NewE(err)
 	}
-	hostDNSSuffix, err := GetFromResp[string](respData)
+	hostDNSSuffix, err := getFromResp[string](respData)
 	if err != nil {
 		return "", fn.NewE(err)
 	}

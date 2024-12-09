@@ -8,8 +8,6 @@ import (
 	"runtime"
 
 	"github.com/kloudlite/kl/cmd/auth"
-	"github.com/kloudlite/kl/cmd/cluster"
-	// "github.com/kloudlite/kl/cmd/expose"
 	"github.com/kloudlite/kl/cmd/get"
 	"github.com/kloudlite/kl/cmd/initp"
 	"github.com/kloudlite/kl/cmd/intercept"
@@ -74,7 +72,7 @@ func init() {
 	// rootCmd.AddCommand(runner.AttachCommand)
 	//
 	//
-	rootCmd.AddCommand(cluster.Cmd)
+	// rootCmd.AddCommand(cluster.Cmd)
 	//
 	// rootCmd.AddCommand(connect.Command)
 	// rootCmd.AddCommand(v2Shell.Command)

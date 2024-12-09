@@ -34,42 +34,6 @@ type GeneratedEnvs struct {
 	MountFiles map[string]string `json:"mountFiles"`
 }
 
-// func GenerateEnv() (*GeneratedEnvs, error) {
-// 	klFile, err := fileclient.GetKlFile()
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-//
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-//
-// 	cookie, err := getCookie()
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-//
-// 	respData, err := klFetch("cli_generateEnv", map[string]any{
-// 		"klConfig": klFile,
-// 	}, &cookie)
-//
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-//
-// 	type Response struct {
-// 		GeneratedEnvVars GeneratedEnvs `json:"data"`
-// 	}
-// 	var resp Response
-// 	err = json.Unmarshal(respData, &resp)
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-//
-// 	// return resp.CoreConfigs, nil
-// 	return &resp.GeneratedEnvVars, nil
-// }
-
 type Kv struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
@@ -83,6 +47,16 @@ type (
 func (apic *apiClient) GetLoadMaps() (map[string]string, MountMap, error) {
 	fc := apic.fc
 
+	sd, err := fc.GetSessionData()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	teamName, err := sd.GetTeam()
+	if err != nil {
+		return nil, nil, err
+	}
+
 	kt, err := fc.GetKlFile()
 	if err != nil {
 		return nil, nil, functions.NewE(err)
@@ -94,8 +68,9 @@ func (apic *apiClient) GetLoadMaps() (map[string]string, MountMap, error) {
 	}
 
 	cookie, err := getCookie([]functions.Option{
-		functions.MakeOption("teamName", kt.TeamName),
+		functions.MakeOption("teamName", teamName),
 	}...)
+
 	if err != nil {
 		return nil, nil, functions.NewE(err)
 	}
@@ -171,7 +146,7 @@ func (apic *apiClient) GetLoadMaps() (map[string]string, MountMap, error) {
 		return nil, nil, functions.NewE(err)
 	}
 
-	fromResp, err := GetFromResp[EnvRsp](respData)
+	fromResp, err := getFromResp[EnvRsp](respData)
 	if err != nil {
 		return nil, nil, functions.NewE(err)
 	}

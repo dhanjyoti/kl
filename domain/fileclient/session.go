@@ -1,11 +1,9 @@
 package fileclient
 
 import (
-	"errors"
 	"os"
 	"path"
 
-	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"sigs.k8s.io/yaml"
 )
@@ -104,32 +102,6 @@ func (s *SessionData) SetTeam(team string) error {
 func (s *SessionData) SetSession(sess string) error {
 	s.Session = sess
 	return s.Save()
-}
-
-func getSessionData() (*SessionData, error) {
-	file, err := ReadFile(SessionFileName)
-	session := SessionData{}
-
-	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			b, err := yaml.Marshal(session)
-			if err != nil {
-				return nil, functions.NewE(err, "failed to marshal session")
-			}
-
-			if err := writeOnUserScope(SessionFileName, b); err != nil {
-				return nil, functions.NewE(err, "failed to save session")
-			}
-
-			return &session, nil
-		}
-	}
-
-	if err = yaml.Unmarshal(file, &session); err != nil {
-		return nil, functions.NewE(err, "failed to unmarshal session")
-	}
-
-	return &session, nil
 }
 
 func (c *fclient) GetSessionData() (*SessionData, error) {

@@ -35,6 +35,32 @@ func (a *AccountContext) Save() error {
 	return writeOnUserScope(path.Join(confPath, "config.yml"), out)
 }
 
+func getSessionData() (*SessionData, error) {
+	file, err := readFile(SessionFileName)
+	session := SessionData{}
+
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			b, err := yaml.Marshal(session)
+			if err != nil {
+				return nil, fn.NewE(err, "failed to marshal session")
+			}
+
+			if err := writeOnUserScope(SessionFileName, b); err != nil {
+				return nil, fn.NewE(err, "failed to save session")
+			}
+
+			return &session, nil
+		}
+	}
+
+	if err = yaml.Unmarshal(file, &session); err != nil {
+		return nil, fn.NewE(err, "failed to unmarshal session")
+	}
+
+	return &session, nil
+}
+
 func getActiveAccountConfigPath() (string, error) {
 	sd, err := getSessionData()
 	if err != nil {
@@ -52,31 +78,6 @@ func getActiveAccountConfigPath() (string, error) {
 	}
 
 	return path.Join(configFolder, s, "config.yml"), nil
-}
-
-func GetActiveAccountContext() (*AccountContext, error) {
-	confPath, err := getActiveAccountConfigPath()
-	if err != nil {
-		return nil, err
-	}
-	accContext := AccountContext{}
-
-	b, err := ReadFile(confPath)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			if err := accContext.Save(); err != nil {
-				return nil, err
-			}
-
-			return &accContext, nil
-		}
-	}
-
-	if err := yaml.Unmarshal(b, &accContext); err != nil {
-		return nil, err
-	}
-
-	return &accContext, nil
 }
 
 func (f *fclient) CurrentTeamName() (string, error) {

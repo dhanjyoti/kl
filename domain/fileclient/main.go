@@ -7,6 +7,10 @@ type fclient struct {
 }
 
 type FileClient interface {
+	SaveBaseURL(url string) error
+	GetBaseURL() (string, error)
+	GetExtraData() (*ExtraData, error)
+
 	GetHostWgConfig() (string, error)
 	GetWGConfig() (*WGConfig, error)
 	SetWGConfig(config string) error

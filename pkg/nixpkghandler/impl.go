@@ -136,7 +136,7 @@ func (p *pkgHandler) SyncLockfile() error {
 	}
 
 	for _, v := range kf.Packages {
-		if hash, ok := lf.Packages[v]; !ok {
+		if hash, ok := lf.Packages[v]; ok {
 			newLock[v] = hash
 			continue
 		}
@@ -152,10 +152,12 @@ func (p *pkgHandler) SyncLockfile() error {
 
 	newLock = fileclient.HashData{}
 	for _, v := range kf.Libraries {
-		if hash, ok := lf.Libraries[v]; !ok {
+		if hash, ok := lf.Libraries[v]; ok {
 			newLock[v] = hash
 			continue
 		}
+
+		fmt.Println(lf.Libraries, v)
 
 		pkg, pkgHash, err := p.resolve(v)
 		if err != nil {

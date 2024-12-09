@@ -77,7 +77,12 @@ func Execute() {
 }
 
 func versionCheck() {
-	data, err := fileclient.GetExtraData()
+	fc, err := fileclient.New()
+	if err != nil {
+		return
+	}
+
+	data, err := fc.GetExtraData()
 	if err == nil {
 		if time.Since(data.LastUpdateCheck).Hours() > 12 {
 			u := updater.NewUpdater()
@@ -100,7 +105,7 @@ func versionCheck() {
 
 				fn.Log(*s)
 				data.LastUpdateCheck = time.Now()
-				if err := fileclient.SaveExtraData(data); err != nil {
+				if err := data.Save(); err != nil {
 					fn.Log(text.Yellow("Failed to save extra data"))
 				}
 			}

@@ -9,7 +9,7 @@ import (
 	"github.com/kloudlite/kl/pkg/ui/spinner"
 )
 
-var PaginationDefault = map[string]any{
+var paginationDefault = map[string]any{
 	"orderBy":       "updateTime",
 	"sortDirection": "ASC",
 	"first":         99999999,
@@ -32,13 +32,6 @@ type ServiceSpec struct {
 	}
 	ServiceIp  string   `json:"serviceIp"`
 	ServiceRef Metadata `json:"serviceRef"`
-	//Services []struct {
-	//	Port int `json:"port"`
-	//} `json:"services"`
-	//Intercept *struct {
-	//	Enabled      bool          `json:"enabled"`
-	//	PortMappings []ServicePort `json:"portMappings"`
-	//} `json:"intercept"`
 }
 
 type InterceptStatus struct {
@@ -67,7 +60,7 @@ func (apic *apiClient) ListServices(teamName string, envName string) ([]Service,
 	}
 
 	respData, err := klFetch("cli_listServices", map[string]any{
-		"pq":      PaginationDefault,
+		"pq":      paginationDefault,
 		"envName": envName,
 	}, &cookie)
 	if err != nil {
@@ -79,54 +72,6 @@ func (apic *apiClient) ListServices(teamName string, envName string) ([]Service,
 		return fromResp, nil
 	}
 }
-
-// func (apic *apiClient) SelectApp(options ...fn.Option) (*Service, error) {
-// 	appName := fn.GetOption(options, "appName")
-
-// 	a, err := apic.ListServices(options...)
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-
-// 	if len(a) == 0 {
-// 		return nil, fn.Errorf("no app found")
-// 	}
-
-// 	if appName != "" {
-// 		for i, a2 := range a {
-// 			if a2.Metadata.Name == appName {
-// 				return &a[i], nil
-// 			}
-// 		}
-
-// 		return nil, fn.Errorf("app not found")
-// 	}
-
-// 	app, err := fzf.FindOne(a, func(item Service) string {
-// 		return fmt.Sprintf("%s (%s)%s", item.DisplayName, item.Metadata.Name, func() string {
-// 			if item.IsMainService {
-// 				return ""
-// 			}
-
-// 			return " [external]"
-// 		}())
-// 	}, fzf.WithPrompt("Select Service>"))
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-
-// 	return app, nil
-// }
-
-// func EnsureApp(envName string, options ...fn.Option) (*Service, error) {
-
-// 	s, err := SelectApp(envName, options...)
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-
-// 	return s, nil
-// }
 
 func (apic *apiClient) InterceptService(service *Service, status bool, ports []ServicePort, envName string, options ...fn.Option) error {
 	devName := fn.GetOption(options, "deviceName")
@@ -171,7 +116,6 @@ func (apic *apiClient) InterceptService(service *Service, status bool, ports []S
 	}
 
 	if len(ports) == 0 {
-		//if service.Spec.Intercept != nil && len(service.Spec.Intercept.PortMappings) != 0 {
 		if service.InterceptStatus.Intercepted {
 			ports = append(ports, service.InterceptStatus.PortMappings...)
 		} else if len(service.Spec.Ports) != 0 {
@@ -203,7 +147,7 @@ func (apic *apiClient) InterceptService(service *Service, status bool, ports []S
 		return functions.NewE(err)
 	}
 
-	if _, err := GetFromResp[bool](respData); err != nil {
+	if _, err := getFromResp[bool](respData); err != nil {
 		return functions.NewE(err)
 	} else {
 		return nil
@@ -237,11 +181,6 @@ func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 		teamName = kt.TeamName
 		options = append(options, fn.MakeOption("teamName", teamName))
 	}
-
-	//config, err := apic.fc.GetClusterConfig(teamName)
-	//if err != nil {
-	//	return functions.NewE(err)
-	//}
 
 	if devName == "" {
 		sd, err := fc.GetSessionData()
@@ -278,7 +217,7 @@ func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 		return functions.NewE(err)
 	}
 
-	if _, err := GetFromResp[bool](respData); err != nil {
+	if _, err := getFromResp[bool](respData); err != nil {
 		return functions.NewE(err)
 	} else {
 		return nil

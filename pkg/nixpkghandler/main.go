@@ -17,7 +17,7 @@ type PackageClient interface {
 
 	// used for fzf search
 	Find(pname string) (string, string, error)
-	// SyncLockfile() error
+	SyncLockfile() error
 }
 
 type pkgHandler struct {

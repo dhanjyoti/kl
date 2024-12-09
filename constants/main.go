@@ -51,14 +51,22 @@ func GetBoxImageName() string {
 var (
 	BaseURL = func() string {
 		baseUrl := flags.DefaultBaseURL
-
-		s, err := fileclient.GetBaseURL()
-		if err == nil && s != "" {
-			baseUrl = s
+		if s := os.Getenv("KL_BASE_URL"); s != "" {
+			return s
 		}
 
-		if s := os.Getenv("KL_BASE_URL"); s != "" {
-			baseUrl = s
+		fc, err := fileclient.New()
+		if err != nil {
+			return baseUrl
+		}
+
+		s, err := fc.GetBaseURL()
+		if err != nil {
+			return baseUrl
+		}
+
+		if s != "" {
+			return s
 		}
 
 		return baseUrl

@@ -1,8 +1,6 @@
 package fileclient
 
 import (
-	"errors"
-	"os"
 	"path"
 
 	confighandler "github.com/kloudlite/kl/pkg/config-handler"
@@ -23,35 +21,8 @@ func (le *LocalEnv) GetActiveEnv() (string, error) {
 	return le.ActiveEnv, nil
 }
 
-func getEnvConfigPath() (string, error) {
-	cf := path.Join(path.Dir(getConfigPath()), ".kl")
-
-	if err := os.MkdirAll(cf, os.ModePerm); err != nil {
-		return "", err
-	}
-
-	return cf, nil
-}
-
-func GetEnvSession() (*LocalEnv, error) {
-	s, err := getEnvConfigPath()
-	if err != nil {
-		return nil, err
-	}
-
-	le, err := confighandler.ReadConfig[LocalEnv](path.Join(s, "config.yml"))
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			le := &LocalEnv{}
-			if err := le.Save(); err != nil {
-				return nil, err
-			}
-			return le, nil
-		}
-		return nil, err
-	}
-
-	return le, nil
+func (fc *fclient) GetEnvSession() (*LocalEnv, error) {
+	return getEnvSession()
 }
 
 func (le *LocalEnv) SetEnv(env string) error {
@@ -79,7 +50,7 @@ func (le *LocalEnv) Save() error {
 
 func (f *fclient) SelectEnv(env string) error {
 
-	le, err := GetEnvSession()
+	le, err := getEnvSession()
 	if err != nil {
 		return err
 	}
@@ -88,7 +59,7 @@ func (f *fclient) SelectEnv(env string) error {
 }
 
 func (f *fclient) CurrentEnv() (string, error) {
-	le, err := GetEnvSession()
+	le, err := getEnvSession()
 	if err != nil {
 		return "", err
 	}

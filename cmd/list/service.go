@@ -82,4 +82,5 @@ func listServices(apic apiclient.ApiClient, cmd *cobra.Command, _ []string) erro
 
 func init() {
 	serviesCmd.Aliases = append(serviesCmd.Aliases, "service")
+	serviesCmd.Aliases = append(serviesCmd.Aliases, "svc")
 }
