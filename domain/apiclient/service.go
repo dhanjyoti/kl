@@ -129,7 +129,6 @@ func (apic *apiClient) ListServices(teamName string, envName string) ([]Service,
 // }
 
 func (apic *apiClient) InterceptService(service *Service, status bool, ports []ServicePort, envName string, options ...fn.Option) error {
-	teamName := fn.GetOption(options, "teamName")
 	devName := fn.GetOption(options, "deviceName")
 
 	fc, err := fileclient.New()
@@ -137,19 +136,14 @@ func (apic *apiClient) InterceptService(service *Service, status bool, ports []S
 		return functions.NewE(err)
 	}
 
-	if teamName == "" {
-		kt, err := fc.GetKlFile()
-		if err != nil {
-			return functions.NewE(err)
-		}
-
-		if kt.TeamName == "" {
-			return fn.Errorf("team name is required")
-		}
-
-		teamName = kt.TeamName
-		options = append(options, fn.MakeOption("teamName", teamName))
+	sd, err := fc.GetSessionData()
+	if err != nil {
+		return functions.NewE(err)
 	}
+
+	teamName, err := sd.GetTeam()
+
+	options = append(options, fn.MakeOption("teamName", teamName))
 
 	if devName == "" {
 		sd, err := fc.GetSessionData()
