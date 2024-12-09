@@ -48,7 +48,7 @@ func startK3sServer(cmd *cobra.Command) error {
 		return functions.NewE(err)
 	}
 
-	sd, err := fileclient.GetSessionData()
+	sd, err := fc.GetSessionData()
 	if err != nil {
 		return err
 	}

@@ -26,7 +26,7 @@ type ApiClient interface {
 
 	GetVPNDevice(teamName string, devName string) (*Device, error)
 	CheckDeviceStatus() bool
-	GetAccVPNConfig(team string) (*fileclient.TeamVpnConfig, error)
+	GetAccVPNConfig(team string) (*fileclient.DeviceData, error)
 	CreateVpnForTeam(team string) (*Device, error)
 	CreateDevice(devName, displayName, team string) (*Device, error)
 

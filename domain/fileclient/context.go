@@ -49,11 +49,6 @@ type WGConfig struct {
 	Proxy     Keys   `json:"wg-proxy"`
 }
 
-type DeviceContext struct {
-	DisplayName string `json:"display_name"`
-	DeviceName  string `json:"device_name"`
-}
-
 type ExtraData struct {
 	BaseUrl         string    `json:"baseUrl"`
 	DnsHostSuffix   string    `json:"dnsHostSuffix"`
@@ -200,7 +195,7 @@ func GetExtraData() (*ExtraData, error) {
 	return &extraData, nil
 }
 
-func (fc *fclient) SetDevice(device *DeviceContext) error {
+func (fc *fclient) SetDevice(device *DeviceData) error {
 	file, err := yaml.Marshal(device)
 	if err != nil {
 		return functions.NewE(err, "failed to marshal device context")
@@ -209,30 +204,17 @@ func (fc *fclient) SetDevice(device *DeviceContext) error {
 	return writeOnUserScope(DeviceFileName, file)
 }
 
-func (fc *fclient) GetDevice() (*DeviceContext, error) {
-	file, err := ReadFile(DeviceFileName)
-	device := DeviceContext{}
-
+func (fc *fclient) GetDevice() (*DeviceData, error) {
+	sd, err := fc.GetSessionData()
 	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			b, err := yaml.Marshal(device)
-			if err != nil {
-				return nil, functions.NewE(err, "failed to marshal device context")
-			}
-
-			if err := writeOnUserScope(DeviceFileName, b); err != nil {
-				return nil, functions.NewE(err, "failed to write device context")
-			}
-		}
-
-		return &device, nil
+		return nil, err
+	}
+	dData, err := sd.GetDevice()
+	if err != nil {
+		return nil, err
 	}
 
-	if err = yaml.Unmarshal(file, &device); err != nil {
-		return nil, functions.NewE(err, "failed to unmarshal device context")
-	}
-
-	return &device, nil
+	return dData, nil
 }
 
 func GenerateWireGuardKeys() (wgtypes.Key, wgtypes.Key, error) {
@@ -361,7 +343,7 @@ func (fc *fclient) GetK3sTracker() (*K3sTracker, error) {
 func GetCookieString(options ...fn.Option) (string, error) {
 	teamName := fn.GetOption(options, "teamName")
 
-	sd, err := GetSessionData()
+	sd, err := getSessionData()
 	if err != nil {
 		return "", err
 	}

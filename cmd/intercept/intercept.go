@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/kloudlite/kl/domain/apiclient"
-	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
@@ -26,28 +25,24 @@ var Cmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-		if err := startIntercept(apic, fc, cmd, args); err != nil {
+		if err := startIntercept(apic); err != nil {
 			fn.PrintError(err)
 		}
 	},
 }
 
-func startIntercept(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Command, args []string) error {
-	accName, err := fc.CurrentTeamName()
-	if err != nil {
-		return err
-	}
-	currentEnv, err := fc.CurrentEnv()
+func startIntercept(apic apiclient.ApiClient) error {
+	teamName, err := apic.GetFileClient().CurrentTeamName()
 	if err != nil {
 		return err
 	}
 
-	appsList, err := apic.ListApps(accName, currentEnv)
+	currentEnv, err := apic.GetFileClient().CurrentEnv()
+	if err != nil {
+		return err
+	}
+
+	appsList, err := apic.ListApps(teamName, currentEnv)
 	if err != nil {
 		return err
 	}
@@ -61,9 +56,9 @@ func startIntercept(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cob
 
 	var apps []app
 
-	for i, _ := range appsList {
+	for i := range appsList {
 		a := appsList[i]
-		for j, _ := range a.Spec.Services {
+		for j := range a.Spec.Services {
 			apps = append(apps, app{
 				Name:        a.Metadata.Name,
 				DisplayName: a.DisplayName,
@@ -108,16 +103,9 @@ func startIntercept(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cob
 		DevicePort: devicePort,
 	})
 
-	//k3sClient, err := k3s.NewClient()
-	//if err != nil {
-	//	return err
-	//}
-	//if err = k3sClient.StartAppInterceptService(ports, true); err != nil {
-	//	return err
-	//}
-
 	if err = apic.InterceptApp(selectedApp.App, true, ports, currentEnv, []fn.Option{
 		fn.MakeOption("appName", selectedApp.Name),
+		fn.MakeOption("teamName", teamName),
 	}...); err != nil {
 		return err
 	}

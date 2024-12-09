@@ -56,6 +56,15 @@ func GetEnvSession() (*LocalEnv, error) {
 
 func (le *LocalEnv) SetEnv(env string) error {
 	le.ActiveEnv = env
+	sd, err := getSessionData()
+
+	if err != nil {
+		return err
+	}
+	if err := sd.SetEnv(env); err != nil {
+		return err
+	}
+
 	return le.Save()
 }
 

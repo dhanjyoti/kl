@@ -48,7 +48,7 @@ var Cmd = &cobra.Command{
 			return
 		}
 
-		data, err := fileclient.GetSessionData()
+		data, err := fc.GetSessionData()
 		if err == nil {
 			if data.Team != "" {
 				fn.Log(fmt.Sprint(text.Bold(text.Blue("Team: ")), data.Team))

@@ -36,7 +36,7 @@ func (a *AccountContext) Save() error {
 }
 
 func getActiveAccountConfigPath() (string, error) {
-	sd, err := GetSessionData()
+	sd, err := getSessionData()
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +80,7 @@ func GetActiveAccountContext() (*AccountContext, error) {
 }
 
 func (f *fclient) CurrentTeamName() (string, error) {
-	sd, err := GetSessionData()
+	sd, err := getSessionData()
 	if err != nil {
 		return "", fn.NewE(err)
 	}

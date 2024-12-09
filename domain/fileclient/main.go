@@ -13,13 +13,12 @@ type FileClient interface {
 	CurrentTeamName() (string, error)
 	Logout() error
 	GetK3sTracker() (*K3sTracker, error)
-	GetVpnTeamConfig(team string) (*TeamVpnConfig, error)
-	SetVpnTeamConfig(team string, config *TeamVpnConfig) error
 	GetClusterConfig(team string) (*TeamClusterConfig, error)
 	SetClusterConfig(team string, accClusterConfig *TeamClusterConfig) error
 	DeleteClusterData(team string) error
-	GetDevice() (*DeviceContext, error)
-	SetDevice(device *DeviceContext) error
+	GetDevice() (*DeviceData, error)
+	SetDevice(device *DeviceData) error
+	GetSessionData() (*SessionData, error)
 
 	GetKlFile() (*KLFileType, error)
 

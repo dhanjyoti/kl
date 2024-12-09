@@ -236,29 +236,43 @@ func (apic *apiClient) CreateVpnForTeam(team string) (*Device, error) {
 	return device, nil
 }
 
-func (apic *apiClient) GetAccVPNConfig(team string) (*fileclient.TeamVpnConfig, error) {
+func (apic *apiClient) GetAccVPNConfig(team string) (*fileclient.DeviceData, error) {
 
-	avc, err := apic.fc.GetVpnTeamConfig(team)
+	sd, err := apic.fc.GetSessionData()
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
 
-	if err != nil && os.IsNotExist(err) {
-		dev, err := apic.CreateVpnForTeam(team)
+	avc, err := sd.GetDevice()
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	// if err != nil && os.IsNotExist(err) {
+	// 	dev, err := apic.CreateVpnForTeam(team)
+	// 	if err != nil {
+	// 		return nil, fn.NewE(err)
+	// 	}
+	// 	teamVpnConfig := fileclient.DeviceData{
+	// 		WGconf:     dev.WireguardConfig.Value,
+	// 		DeviceName: dev.Metadata.Name,
+	// 		IpAddress:  dev.IPAddress,
+	// 	}
+	//
+	// 	if err := sd.SetDevice(teamVpnConfig); err != nil {
+	// 		return nil, fn.NewE(err)
+	// 	}
+	//
+	// } else if err != nil {
+	// 	return nil, fn.NewE(err)
+	// }
+	if avc == nil {
+		sd, err := apic.fc.GetSessionData()
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
-		teamVpnConfig := fileclient.TeamVpnConfig{
-			WGconf:     dev.WireguardConfig.Value,
-			DeviceName: dev.Metadata.Name,
-			IpAddress:  dev.IPAddress,
-		}
 
-		if err := apic.fc.SetVpnTeamConfig(team, &teamVpnConfig); err != nil {
-			return nil, fn.NewE(err)
-		}
-	} else if err != nil {
-		return nil, fn.NewE(err)
-	}
-	if avc == nil {
-		avc, err = apic.fc.GetVpnTeamConfig(team)
+		avc, err = sd.GetDevice()
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
@@ -271,9 +285,7 @@ func (apic *apiClient) GetAccVPNConfig(team string) (*fileclient.TeamVpnConfig, 
 
 		avc.WGconf = d.WireguardConfig.Value
 
-		if err := apic.fc.SetVpnTeamConfig(team, avc); err != nil {
-			return nil, fn.NewE(err)
-		}
+		sd.SetDevice(*avc)
 	}
 
 	return avc, nil

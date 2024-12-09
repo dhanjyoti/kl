@@ -9,7 +9,7 @@ import (
 
 	"github.com/kloudlite/kl/cmd/auth"
 	"github.com/kloudlite/kl/cmd/cluster"
-	"github.com/kloudlite/kl/cmd/expose"
+	// "github.com/kloudlite/kl/cmd/expose"
 	"github.com/kloudlite/kl/cmd/get"
 	"github.com/kloudlite/kl/cmd/initp"
 	"github.com/kloudlite/kl/cmd/intercept"
@@ -57,7 +57,7 @@ func init() {
 	rootCmd.AddCommand(add.Command)
 
 	rootCmd.AddCommand(intercept.Cmd)
-	rootCmd.AddCommand(expose.Cmd)
+	// rootCmd.AddCommand(expose.Cmd)
 
 	rootCmd.AddCommand(status.Cmd)
 

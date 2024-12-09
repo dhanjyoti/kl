@@ -37,7 +37,7 @@ func cleanCluster(cmd *cobra.Command) error {
 		return err
 	}
 
-	data, err := fileclient.GetSessionData()
+	data, err := fc.GetSessionData()
 	if err != nil {
 		return fn.NewE(err)
 	}

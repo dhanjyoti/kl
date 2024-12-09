@@ -2,11 +2,11 @@ package apiclient
 
 import (
 	"fmt"
+
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
-	"os"
 )
 
 var PaginationDefault = map[string]any{
@@ -57,54 +57,6 @@ func (apic *apiClient) ListApps(teamName string, envName string) ([]App, error) 
 	}
 }
 
-// func (apic *apiClient) SelectApp(options ...fn.Option) (*App, error) {
-// 	appName := fn.GetOption(options, "appName")
-
-// 	a, err := apic.ListApps(options...)
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-
-// 	if len(a) == 0 {
-// 		return nil, fn.Errorf("no app found")
-// 	}
-
-// 	if appName != "" {
-// 		for i, a2 := range a {
-// 			if a2.Metadata.Name == appName {
-// 				return &a[i], nil
-// 			}
-// 		}
-
-// 		return nil, fn.Errorf("app not found")
-// 	}
-
-// 	app, err := fzf.FindOne(a, func(item App) string {
-// 		return fmt.Sprintf("%s (%s)%s", item.DisplayName, item.Metadata.Name, func() string {
-// 			if item.IsMainApp {
-// 				return ""
-// 			}
-
-// 			return " [external]"
-// 		}())
-// 	}, fzf.WithPrompt("Select App>"))
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-
-// 	return app, nil
-// }
-
-// func EnsureApp(envName string, options ...fn.Option) (*App, error) {
-
-// 	s, err := SelectApp(envName, options...)
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-
-// 	return s, nil
-// }
-
 func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envName string, options ...fn.Option) error {
 	teamName := fn.GetOption(options, "teamName")
 	devName := fn.GetOption(options, "deviceName")
@@ -129,7 +81,12 @@ func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envN
 	}
 
 	if devName == "" {
-		avc, err := fc.GetVpnTeamConfig(teamName)
+		sd, err := fc.GetSessionData()
+		if err != nil {
+			return functions.NewE(err)
+		}
+
+		avc, err := sd.GetDevice()
 		if err != nil {
 			return functions.NewE(err)
 		}
@@ -165,38 +122,15 @@ func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envN
 		return fn.Errorf("no ports provided to intercept")
 	}
 
-	//user, err := apic.GetCurrentUser()
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//hostName := os.Getenv("KL_HOST_USER")
-
 	query := "cli_interceptApp"
 	if !app.IsMainApp {
 		query = "cli_interceptExternalApp"
 	}
 
-	//k3sTracker, err := apic.fc.GetK3sTracker()
-	//if err != nil {
-	//	return fn.Error("k3s server is not ready, please wait")
-	//}
-
-	//lastCheckedAt, err := time.Parse(time.RFC3339, k3sTracker.LastCheckedAt)
-	//if err != nil {
-	//	return fn.Error("k3s server is not ready, please wait")
-	//}
-	//
-	//if time.Since(lastCheckedAt) > 3*time.Second {
-	//	return fn.Error("k3s server is not ready, please wait")
-	//}
-
 	respData, err := klFetch(query, map[string]any{
-		"appName":    app.Metadata.Name,
-		"envName":    envName,
-		"deviceName": devName,
-		//"ipAddr":       k3sTracker.DeviceRouter.IP,
-		//"clusterName":  fmt.Sprintf("%s-%s", user.Name, hostName),
+		"appName":      app.Metadata.Name,
+		"envName":      envName,
+		"deviceName":   devName,
 		"intercept":    status,
 		"portMappings": ports,
 	}, &cookie)
@@ -245,10 +179,13 @@ func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 	//}
 
 	if devName == "" {
-		avc, err := fc.GetVpnTeamConfig(teamName)
-		if err != nil && os.IsNotExist(err) {
-			return nil
-		} else if err != nil {
+		sd, err := fc.GetSessionData()
+		if err != nil {
+			return functions.NewE(err)
+		}
+
+		avc, err := sd.GetDevice()
+		if err != nil {
 			return functions.NewE(err)
 		}
 
