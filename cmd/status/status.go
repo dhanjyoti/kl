@@ -48,88 +48,101 @@ var Cmd = &cobra.Command{
 			return
 		}
 
-		data, err := fc.GetSessionData()
+		var team string
+
+		team, err = fc.GetDataContext().GetTeam()
 		if err == nil {
-			if data.Team != "" {
-				fn.Log(fmt.Sprint(text.Bold(text.Blue("Team: ")), data.Team))
-			}
+			fn.Log(fmt.Sprint(text.Bold(text.Blue("Team: ")), team))
 		}
 
-		e, err := apic.EnsureEnv()
-		selectedEnv := ""
-		if err == nil {
-			selectedEnv = e
-		} else if errors.Is(err, fileclient.NoEnvSelected) {
-			klFile, err := fc.GetKlFile()
-			if err != nil {
-				fn.PrintError(err)
+		func() {
+			if team != "" {
 				return
 			}
-			selectedEnv = klFile.DefaultEnv
-		}
-		ev, err := apic.GetEnvironment(data.Team, selectedEnv)
-		if err == nil {
-			r := text.Yellow("offline")
-			if ev.ClusterName != "" {
-				if ev.IsArchived {
-					r = text.Yellow("archived")
-				} else {
-					cluster, err := apic.GetCluster(data.Team, ev.ClusterName)
-					if err != nil {
-						fn.PrintError(err)
-						return
-					}
-					if time.Since(cluster.LastOnlineAt) < time.Minute {
-						r = text.Green("online")
-					}
-					if ev.Spec.Suspend {
-						r = text.Yellow("suspended")
-					}
-				}
-				fn.Log(text.Bold(text.Blue("Environment: ")), selectedEnv, fmt.Sprintf("(%s)", r))
-			}
-		} else if selectedEnv != "" {
-			fn.Log(text.Bold(text.Blue("Environment: ")), selectedEnv)
-		}
 
-		fn.Log(text.Bold("\nCluster Status"))
-
-		config, err := fc.GetClusterConfig(data.Team)
-		if err == nil {
-			fn.Log("Name: ", text.Blue(config.ClusterName))
-
-			k3sStatus, _ := k3sClient.CheckK3sRunningLocally()
-			if k3sStatus {
-				fn.Log("Running: ", text.Green("true"))
-			} else {
-				fn.Log("Running ", text.Yellow("false"))
-			}
-
-			k3sTracker, err := fc.GetK3sTracker()
-			if err != nil {
-				if flags.IsVerbose {
+			e, err := apic.EnsureEnv()
+			selectedEnv := ""
+			if err == nil {
+				selectedEnv = e
+			} else if errors.Is(err, fileclient.NoEnvSelected) {
+				klFile, err := fc.GetKlFile()
+				if err != nil {
 					fn.PrintError(err)
+					return
 				}
-				fn.Log("Local Cluster: ", text.Yellow("not ready"))
-				fn.Log("Edge Connection:", text.Yellow("offline"))
-			} else {
-				err = getClusterK3sStatus(k3sTracker)
+				selectedEnv = klFile.DefaultEnv
+			}
+
+			ev, err := apic.GetEnvironment(team, selectedEnv)
+			if err == nil {
+				r := text.Yellow("offline")
+				if ev.ClusterName != "" {
+					if ev.IsArchived {
+						r = text.Yellow("archived")
+					} else {
+						cluster, err := apic.GetCluster(team, ev.ClusterName)
+						if err != nil {
+							fn.PrintError(err)
+							return
+						}
+						if time.Since(cluster.LastOnlineAt) < time.Minute {
+							r = text.Green("online")
+						}
+						if ev.Spec.Suspend {
+							r = text.Yellow("suspended")
+						}
+					}
+					fn.Log(text.Bold(text.Blue("Environment: ")), selectedEnv, fmt.Sprintf("(%s)", r))
+				}
+			} else if selectedEnv != "" {
+				fn.Log(text.Bold(text.Blue("Environment: ")), selectedEnv)
+			}
+		}()
+
+		func() {
+			if team == "" {
+				return
+			}
+
+			fn.Log(text.Bold("\nCluster Status"))
+			config, err := fc.GetClusterConfig(team)
+			if err == nil {
+				fn.Log("Name: ", text.Blue(config.ClusterName))
+
+				k3sStatus, _ := k3sClient.CheckK3sRunningLocally()
+				if k3sStatus {
+					fn.Log("Running: ", text.Green("true"))
+				} else {
+					fn.Log("Running ", text.Yellow("false"))
+				}
+
+				k3sTracker, err := fc.GetK3sTracker()
 				if err != nil {
 					if flags.IsVerbose {
 						fn.PrintError(err)
 					}
 					fn.Log("Local Cluster: ", text.Yellow("not ready"))
 					fn.Log("Edge Connection:", text.Yellow("offline"))
+				} else {
+					err = getClusterK3sStatus(k3sTracker)
+					if err != nil {
+						if flags.IsVerbose {
+							fn.PrintError(err)
+						}
+						fn.Log("Local Cluster: ", text.Yellow("not ready"))
+						fn.Log("Edge Connection:", text.Yellow("offline"))
+					}
 				}
 			}
-		}
-		if err != nil {
-			if os.IsNotExist(err) {
-				fn.Log(text.Yellow("cluster not found"))
-			} else {
-				fn.PrintError(err)
+			if err != nil {
+				if os.IsNotExist(err) {
+					fn.Log(text.Yellow("cluster not found"))
+				} else {
+					fn.PrintError(err)
+				}
 			}
-		}
+		}()
+
 	},
 }
 

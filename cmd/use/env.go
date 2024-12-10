@@ -35,12 +35,12 @@ func switchEnv(*cobra.Command, []string) error {
 		return err
 	}
 
-	klFile, err := apic.GetFileClient().GetKlFile()
+	klFile, err := apic.GetFClient().GetKlFile()
 	if err != nil {
 		return err
 	}
 
-	currentTeam, err := apic.GetFileClient().GetTeam()
+	currentTeam, err := apic.GetFClient().GetDataContext().GetTeam()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -69,7 +69,7 @@ func switchEnv(*cobra.Command, []string) error {
 		return fn.NewE(err)
 	}
 
-	if err := apic.GetFileClient().SelectEnv(env.Metadata.Name); err != nil {
+	if err := apic.GetFClient().SelectEnv(env.Metadata.Name); err != nil {
 		return fn.NewE(err)
 	}
 

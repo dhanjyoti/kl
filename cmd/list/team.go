@@ -47,7 +47,7 @@ func listTeams(apic apiclient.ApiClient, cmd *cobra.Command) error {
 	}
 
 	// this erro ignore is intentional
-	teamName, _ := fc.GetTeam()
+	teamName, _ := fc.GetDataContext().GetTeam()
 
 	header := table.Row{table.HeaderText("name"), table.HeaderText("id")}
 	rows := make([]table.Row, 0)

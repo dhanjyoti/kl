@@ -59,7 +59,7 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err)
 	}
 
-	currentTeam, err := fc.GetWsTeam()
+	currentTeam, err := fc.GetDataContext().GetWsTeam()
 	if err != nil {
 		return fn.NewE(err)
 	}

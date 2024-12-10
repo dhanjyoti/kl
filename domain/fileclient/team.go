@@ -10,16 +10,8 @@ import (
 )
 
 func getSessionData() (*SessionData, error) {
-
-	fc, err := New()
-	if err != nil {
-		return nil, fn.NewE(err, "failed to create file client")
-	}
-
 	file, err := readFile(SessionFileName)
-	session := SessionData{
-		fc: fc,
-	}
+	session := SessionData{}
 
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {

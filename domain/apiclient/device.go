@@ -237,24 +237,15 @@ func (apic *apiClient) CreateVpnForTeam(team string) (*Device, error) {
 }
 
 func (apic *apiClient) GetAccVPNConfig(team string) (*fileclient.DeviceData, error) {
+	dctx := apic.fc.GetDataContext()
 
-	sd, err := apic.fc.GetSessionData()
-	if err != nil {
-		return nil, fn.NewE(err)
-	}
-
-	avc, err := sd.GetDevice()
+	avc, err := dctx.GetDevice()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
 
 	if avc == nil {
-		sd, err := apic.fc.GetSessionData()
-		if err != nil {
-			return nil, fn.NewE(err)
-		}
-
-		avc, err = sd.GetDevice()
+		avc, err = dctx.GetDevice()
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
@@ -267,7 +258,7 @@ func (apic *apiClient) GetAccVPNConfig(team string) (*fileclient.DeviceData, err
 
 		avc.WGconf = d.WireguardConfig.Value
 
-		sd.SetDevice(*avc)
+		dctx.SetDevice(*avc)
 	}
 
 	return avc, nil

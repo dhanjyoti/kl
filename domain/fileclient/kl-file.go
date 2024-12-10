@@ -40,7 +40,12 @@ func (k *Lockfile) Save() error {
 		return fmt.Errorf("lockfile is nil")
 	}
 
-	if err := confighandler.WriteConfig(fmt.Sprintf("%s.lock", getConfigPath()), *k, 0o644); err != nil {
+	cpath, err := getConfigPath()
+	if err != nil {
+		return err
+	}
+
+	if err := confighandler.WriteConfig(fmt.Sprintf("%s.lock", cpath), *k, 0o644); err != nil {
 		fn.PrintError(err)
 		return functions.NewE(err)
 	}
@@ -49,9 +54,12 @@ func (k *Lockfile) Save() error {
 }
 
 func (c *fclient) GetLockfile() (*Lockfile, error) {
-	filePath := getConfigPath()
+	cpath, err := assertConfigPath()
+	if err != nil {
+		return nil, err
+	}
 
-	kllockfile, err := confighandler.ReadConfig[Lockfile](fmt.Sprintf("%s.lock", filePath))
+	kllockfile, err := confighandler.ReadConfig[Lockfile](fmt.Sprintf("%s.lock", cpath))
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			return nil, err
@@ -71,7 +79,12 @@ func (k *KLFileType) Save() error {
 		return fmt.Errorf("klfile is nil")
 	}
 
-	if err := confighandler.WriteConfig(getConfigPath(), *k, 0o644); err != nil {
+	cpath, err := getConfigPath()
+	if err != nil {
+		return err
+	}
+
+	if err := confighandler.WriteConfig(cpath, *k, 0o644); err != nil {
 		fn.PrintError(err)
 		return functions.NewE(err)
 	}
@@ -81,7 +94,7 @@ func (k *KLFileType) Save() error {
 }
 
 const (
-	defaultKLFile = "kl.yml"
+	defaultKLFile = "kl.yaml"
 )
 
 func lookupKLFile(dir string) (string, error) {
@@ -106,22 +119,53 @@ func lookupKLFile(dir string) (string, error) {
 	return lookupKLFile(filepath.Dir(dir))
 }
 
-func getConfigPath() string {
+func (fc *fclient) GetConfigPath() (string, error) {
+	return assertConfigPath()
+}
+
+func assertConfigPath() (string, error) {
+	cpath, err := getConfigPath()
+	if err != nil {
+		return "", fn.Errorf("can't find kl.yaml file in the working directory, please run `kl init` to initialize kl.yaml")
+	}
+
+	if _, err := os.Stat(cpath); os.IsNotExist(err) {
+		return "", err
+	}
+
+	return cpath, nil
+}
+
+func getConfigPath() (string, error) {
 	file, ok := os.LookupEnv("KLCONFIG_PATH")
 	if !ok {
 		wd, _ := os.Getwd()
 		var err error
+
 		file, err = lookupKLFile(wd)
 		if err != nil {
-			return defaultKLFile
+			return "", err
 		}
 	}
 
-	return file
+	return file, nil
 }
 
 func (c *fclient) WriteKLFile(fileObj KLFileType) error {
-	if err := confighandler.WriteConfig(getConfigPath(), fileObj, 0o644); err != nil {
+	cpath, err := assertConfigPath()
+	if err != nil {
+		return err
+	}
+
+	if cpath == "" {
+		wd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		cpath = filepath.Join(wd, defaultKLFile)
+	}
+
+	if err := confighandler.WriteConfig(cpath, fileObj, 0o644); err != nil {
 		fn.PrintError(err)
 		return functions.NewE(err)
 	}
@@ -130,7 +174,7 @@ func (c *fclient) WriteKLFile(fileObj KLFileType) error {
 }
 
 func (c *fclient) GetKlFile() (*KLFileType, error) {
-	klfile, err := c.getKlFile()
+	klfile, err := getKlFile()
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, fn.Errorf("no kl.yml found, please run `kl init` to initialize kl.yml")
@@ -141,8 +185,11 @@ func (c *fclient) GetKlFile() (*KLFileType, error) {
 	return klfile, nil
 }
 
-func (c *fclient) getKlFile() (*KLFileType, error) {
-	filePath := getConfigPath()
+func getKlFile() (*KLFileType, error) {
+	filePath, err := assertConfigPath()
+	if err != nil {
+		return nil, err
+	}
 
 	klfile, err := confighandler.ReadConfig[KLFileType](filePath)
 	if err != nil {

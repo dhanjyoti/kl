@@ -38,7 +38,7 @@ var loginCmd = &cobra.Command{
 			return
 		}
 
-		extraData, err := apic.GetFileClient().GetExtraData()
+		extraData, err := apic.GetFClient().GetExtraData()
 		if err != nil {
 			fn.PrintError(err)
 			return

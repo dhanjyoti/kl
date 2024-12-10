@@ -45,22 +45,24 @@ func UseTeam(cmd *cobra.Command) error {
 		}
 	}
 
-	sd, err := apic.GetFileClient().GetSessionData()
-	if err != nil {
+	dctx := apic.GetFClient().GetDataContext()
+
+	if err := dctx.SetTeam(selectedTeam.Metadata.Name); err != nil {
 		return err
 	}
 
-	if err := sd.SetTeam(selectedTeam.Metadata.Name); err != nil {
-		return err
-	}
-
-	if _, err = sd.GetDevice(); err != nil {
-		d, err := apic.CreateVpnForTeam(sd.Team)
+	if _, err = dctx.GetDevice(); err != nil {
+		st, err := dctx.GetTeam()
 		if err != nil {
 			return fn.NewE(err)
 		}
 
-		if err := sd.SetDevice(fileclient.DeviceData{
+		d, err := apic.CreateVpnForTeam(st)
+		if err != nil {
+			return fn.NewE(err)
+		}
+
+		if err := dctx.SetDevice(fileclient.DeviceData{
 			WGconf:     d.WireguardConfig.Value,
 			IpAddress:  d.IPAddress,
 			DeviceName: d.Metadata.Name,

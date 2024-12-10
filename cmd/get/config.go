@@ -38,7 +38,7 @@ var configCmd = &cobra.Command{
 		}
 
 		if configName == "" {
-			currentTeam, err := fc.GetWsTeam()
+			currentTeam, err := fc.GetDataContext().GetWsTeam()
 			if err != nil {
 				fn.PrintError(err)
 				return
@@ -67,7 +67,7 @@ var configCmd = &cobra.Command{
 			configName = selectedConfig.Metadata.Name
 		}
 
-		currentTeamName, err := fc.GetWsTeam()
+		currentTeamName, err := fc.GetDataContext().GetWsTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return

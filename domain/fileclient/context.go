@@ -209,11 +209,7 @@ func (fc *fclient) SetDevice(device *DeviceData) error {
 }
 
 func (fc *fclient) GetDevice() (*DeviceData, error) {
-	sd, err := fc.GetSessionData()
-	if err != nil {
-		return nil, err
-	}
-	dData, err := sd.GetDevice()
+	dData, err := fc.GetDataContext().GetDevice()
 	if err != nil {
 		return nil, err
 	}

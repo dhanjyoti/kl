@@ -81,7 +81,7 @@ func (apic *apiClient) InterceptService(service *Service, status bool, ports []S
 		return functions.NewE(err)
 	}
 
-	teamName, err := fc.GetWsTeam()
+	teamName, err := fc.GetDataContext().GetWsTeam()
 	if err != nil {
 		return functions.NewE(err)
 	}
@@ -89,12 +89,7 @@ func (apic *apiClient) InterceptService(service *Service, status bool, ports []S
 	options = append(options, fn.MakeOption("teamName", teamName))
 
 	if devName == "" {
-		sd, err := fc.GetSessionData()
-		if err != nil {
-			return functions.NewE(err)
-		}
-
-		avc, err := sd.GetDevice()
+		avc, err := fc.GetDataContext().GetDevice()
 		if err != nil {
 			return functions.NewE(err)
 		}
@@ -181,12 +176,7 @@ func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 	}
 
 	if devName == "" {
-		sd, err := fc.GetSessionData()
-		if err != nil {
-			return functions.NewE(err)
-		}
-
-		avc, err := sd.GetDevice()
+		avc, err := fc.GetDataContext().GetDevice()
 		if err != nil {
 			return functions.NewE(err)
 		}

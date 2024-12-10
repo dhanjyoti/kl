@@ -38,7 +38,7 @@ var secretCmd = &cobra.Command{
 		}
 
 		if secName == "" {
-			currentTeam, err := fc.GetWsTeam()
+			currentTeam, err := fc.GetDataContext().GetWsTeam()
 			if err != nil {
 				fn.PrintError(err)
 				return
@@ -67,7 +67,7 @@ var secretCmd = &cobra.Command{
 			secName = selectedSecret.Metadata.Name
 		}
 
-		currentTeam, err := fc.GetWsTeam()
+		currentTeam, err := fc.GetDataContext().GetWsTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return

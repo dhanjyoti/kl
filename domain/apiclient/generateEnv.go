@@ -47,7 +47,7 @@ type (
 func (apic *apiClient) GetLoadMaps() (map[string]string, MountMap, error) {
 	fc := apic.fc
 
-	teamName, err := fc.GetWsTeam()
+	teamName, err := fc.GetDataContext().GetWsTeam()
 	if err != nil {
 		return nil, nil, err
 	}

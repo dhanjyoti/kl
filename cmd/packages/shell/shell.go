@@ -45,7 +45,7 @@ func Shell(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	lockFile, err := apic.GetFileClient().GetLockfile()
+	lockFile, err := apic.GetFClient().GetLockfile()
 
 	pkgs := make([]string, 0)
 	for _, v := range lockFile.Packages {

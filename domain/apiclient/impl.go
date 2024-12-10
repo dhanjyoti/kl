@@ -10,7 +10,7 @@ type apiClient struct {
 }
 
 type ApiClient interface {
-	GetFileClient() fileclient.FileClient
+	GetFClient() fileclient.FileClient
 	ListTeams() ([]Team, error)
 	GetHostDNSSuffix() (string, error)
 
@@ -54,7 +54,7 @@ type ApiClient interface {
 	RemoveAllIntercepts(options ...fn.Option) error
 }
 
-func (a *apiClient) GetFileClient() fileclient.FileClient {
+func (a *apiClient) GetFClient() fileclient.FileClient {
 	return a.fc
 }
 

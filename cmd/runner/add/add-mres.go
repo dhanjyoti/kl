@@ -125,7 +125,7 @@ func selectMres(apic apiclient.ApiClient, fc fileclient.FileClient) (*apiclient.
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-	currentTeam, err := fc.GetWsTeam()
+	currentTeam, err := fc.GetDataContext().GetWsTeam()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -150,7 +150,7 @@ func init() {
 }
 
 func selectMresKey(apic apiclient.ApiClient, fc fileclient.FileClient, secretName string) (*string, error) {
-	selectedTeam, err := fc.GetWsTeam()
+	selectedTeam, err := fc.GetDataContext().GetWsTeam()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}

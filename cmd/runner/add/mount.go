@@ -40,12 +40,6 @@ var mountCommand = &cobra.Command{
 			return
 		}
 
-		filePath := fn.ParseKlFile(cmd)
-
-		if filePath == "" {
-			filePath = "/home/kl/workspace/kl.yml"
-		}
-
 		klFile, err := fc.GetKlFile()
 		if err != nil {
 			fn.PrintError(err)
@@ -98,7 +92,7 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 
 	items := make([]apiclient.ConfigORSecret, 0)
 	if cOrs == fileclient.ConfigType {
-		currentTeam, err := fc.GetWsTeam()
+		currentTeam, err := fc.GetDataContext().GetWsTeam()
 		if err != nil {
 			return err
 		}
@@ -121,7 +115,7 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 		}
 
 	} else {
-		currentTeam, err := fc.GetWsTeam()
+		currentTeam, err := fc.GetDataContext().GetWsTeam()
 		if err != nil {
 			return err
 		}
