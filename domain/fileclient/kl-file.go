@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 
 	confighandler "github.com/kloudlite/kl/pkg/config-handler"
@@ -80,12 +81,15 @@ func (k *KLFileType) Save() error {
 	}
 
 	cpath, err := getConfigPath()
-	if err != nil {
-		return err
+	if err != nil && err.Error() == "config file not found" {
+		wd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		cpath = path.Join(wd, defaultKLFile)
 	}
 
 	if err := confighandler.WriteConfig(cpath, *k, 0o644); err != nil {
-		fn.PrintError(err)
 		return functions.NewE(err)
 	}
 
@@ -120,6 +124,10 @@ func lookupKLFile(dir string) (string, error) {
 }
 
 func (fc *fclient) GetConfigPath() (string, error) {
+	return assertConfigPath()
+}
+
+func GetKlPath() (string, error) {
 	return assertConfigPath()
 }
 

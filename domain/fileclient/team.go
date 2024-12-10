@@ -1,42 +1,33 @@
 package fileclient
 
 import (
-	"errors"
 	"os"
 	"path"
 
+	confighandler "github.com/kloudlite/kl/pkg/config-handler"
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"sigs.k8s.io/yaml"
 )
 
-func getSessionData() (*SessionData, error) {
-	file, err := readFile(SessionFileName)
-	session := SessionData{}
-
+func getCtxData() (*sed, error) {
+	dir, err := GetConfigFolder()
 	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			b, err := yaml.Marshal(session)
-			if err != nil {
-				return nil, fn.NewE(err, "failed to marshal session")
-			}
-
-			if err := writeOnUserScope(SessionFileName, b); err != nil {
-				return nil, fn.NewE(err, "failed to save session")
-			}
-
-			return &session, nil
-		}
+		return nil, fn.NewE(err, "failed to get config folder")
 	}
 
-	if err = yaml.Unmarshal(file, &session); err != nil {
-		return nil, fn.NewE(err, "failed to unmarshal session")
-	}
+	chandler := confighandler.GetHandler[SessionData](path.Join(dir, SessionFileName))
 
-	return &session, nil
+	_ = os.MkdirAll(dir, os.ModePerm)
+
+	sd, err := chandler.Read()
+
+	return &sed{
+		handler:     chandler,
+		SessionData: sd,
+	}, nil
 }
 
 func getActiveTeamConfigPath() (string, error) {
-	sd, err := getSessionData()
+	sd, err := getCtxData()
 	if err != nil {
 		return "", err
 	}
@@ -55,7 +46,7 @@ func getActiveTeamConfigPath() (string, error) {
 }
 
 func (f *fclient) GetTeam() (string, error) {
-	sd, err := getSessionData()
+	sd, err := getCtxData()
 	if err != nil {
 		return "", fn.NewE(err)
 	}
@@ -64,7 +55,7 @@ func (f *fclient) GetTeam() (string, error) {
 }
 
 func (f *fclient) GetWsTeam() (string, error) {
-	sd, err := getSessionData()
+	sd, err := getCtxData()
 	if err != nil {
 		return "", fn.NewE(err)
 	}

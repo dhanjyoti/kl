@@ -333,13 +333,14 @@ func (fc *fclient) GetK3sTracker() (*K3sTracker, error) {
 func GetCookieString(options ...fn.Option) (string, error) {
 	teamName := fn.GetOption(options, "teamName")
 
-	sd, err := getSessionData()
+	sd, err := getCtxData()
 	if err != nil {
 		return "", err
 	}
+
 	session, err := sd.GetSession()
 	if err != nil {
-		return "", fn.Errorf("unauthorized")
+		return "", fn.NewE(err, "unauthorized")
 	}
 
 	if teamName != "" {

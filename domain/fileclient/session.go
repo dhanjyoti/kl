@@ -4,9 +4,9 @@ import (
 	"os"
 	"path"
 
+	confighandler "github.com/kloudlite/kl/pkg/config-handler"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
-	"sigs.k8s.io/yaml"
 )
 
 type Session interface {
@@ -42,59 +42,56 @@ type EnvData struct {
 	EnvCache EnvCacheData `json:"envCache"`
 }
 
-type TeamData struct {
-	Device   *DeviceData        `json:"devices,omitempty"`
-	EnvDatas map[string]EnvData `json:"envs,omitempty"`
-}
-
 type SessionData struct {
 	Session string `json:"session"`
 	Team    string `json:"team,omitempty"`
 	Env     string `json:"env,omitempty"`
 
-	// Devices      map[string]DeviceData `json:"devices,omitempty"`
-	// EnvsData     map[string]string     `json:"envsData,omitempty"`
-
-	SelectedEnvs map[string]string    `json:"selectedEnv,omitempty"`
-	TeamsData    map[string]*TeamData `json:"teamsData,omitempty"`
+	TeamsData map[string]*DeviceData `json:"teamsData,omitempty"`
 }
 
-func (c *SessionData) Clear() error {
-	return nil
+type sed struct {
+	*SessionData
+	handler confighandler.Config[SessionData]
 }
 
-func (s *SessionData) SetDevice(dev DeviceData) error {
+func (c *sed) Clear() error {
+	c.SessionData = &SessionData{}
+	return c.handler.Write()
+}
+
+func (s *sed) SetDevice(dev DeviceData) error {
 	team, err := s.GetTeam()
 	if err != nil {
 		return err
 	}
 
 	if s.TeamsData == nil {
-		s.TeamsData = make(map[string]*TeamData)
+		s.TeamsData = make(map[string]*DeviceData)
 	}
 
 	if s.TeamsData[team] == nil {
-		s.TeamsData[team] = &TeamData{}
+		s.TeamsData[team] = &DeviceData{}
 	}
 
-	s.TeamsData[team].Device = &dev
+	s.TeamsData[team] = &dev
 	return s.Save()
 }
 
-func (s *SessionData) GetDevice() (*DeviceData, error) {
+func (s *sed) GetDevice() (*DeviceData, error) {
 	team, err := s.GetTeam()
 	if err != nil {
 		return nil, err
 	}
 
-	if s.TeamsData[team] == nil || s.TeamsData[team].Device == nil {
-		return nil, fn.Errorf("team not found")
+	if s.TeamsData[team] == nil {
+		return nil, fn.Errorf("device not found")
 	}
 
-	return s.TeamsData[team].Device, nil
+	return s.TeamsData[team], nil
 }
 
-func (s *SessionData) GetWsTeam() (string, error) {
+func (s *sed) GetWsTeam() (string, error) {
 	if s.Team == "" {
 		return "", fn.Errorf("team not found")
 	}
@@ -111,7 +108,7 @@ func (s *SessionData) GetWsTeam() (string, error) {
 	return s.Team, nil
 }
 
-func (s *SessionData) GetTeam() (string, error) {
+func (s *sed) GetTeam() (string, error) {
 	if s.Team == "" {
 		return "", fn.Errorf("team not found")
 	}
@@ -119,7 +116,7 @@ func (s *SessionData) GetTeam() (string, error) {
 	return s.Team, nil
 }
 
-func (s *SessionData) GetSession() (string, error) {
+func (s *sed) GetSession() (string, error) {
 	if s.Session == "" {
 		return "", fn.Errorf("session not found")
 	}
@@ -127,30 +124,19 @@ func (s *SessionData) GetSession() (string, error) {
 	return s.Session, nil
 }
 
-func (s *SessionData) GetEnv() (string, error) {
+func (s *sed) GetEnv() (string, error) {
 	if s.Env == "" {
 		return "", fn.Errorf("env not found")
 	}
 	return s.Env, nil
 }
 
-func (s *SessionData) SetEnv(env string) error {
+func (s *sed) SetEnv(env string) error {
 	s.Env = env
-
-	if s.SelectedEnvs == nil {
-		s.SelectedEnvs = make(map[string]string)
-	}
-
-	dir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	s.SelectedEnvs[dir] = env
 	return s.Save()
 }
 
-func (s *SessionData) SetTeam(team string) error {
+func (s *sed) SetTeam(team string) error {
 	s.Team = team
 	s.Env = ""
 
@@ -170,16 +156,11 @@ func (s *SessionData) SetTeam(team string) error {
 	return s.Save()
 }
 
-func (s *SessionData) SetSession(sess string) error {
+func (s *sed) SetSession(sess string) error {
 	s.Session = sess
 	return s.Save()
 }
 
-func (s *SessionData) Save() error {
-	b, err := yaml.Marshal(s)
-	if err != nil {
-		return err
-	}
-
-	return writeOnUserScope(SessionFileName, b)
+func (s *sed) Save() error {
+	return s.handler.Write()
 }

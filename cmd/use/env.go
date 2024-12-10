@@ -69,7 +69,12 @@ func switchEnv(*cobra.Command, []string) error {
 		return fn.NewE(err)
 	}
 
-	if err := apic.GetFClient().SelectEnv(env.Metadata.Name); err != nil {
+	wc, err := apic.GetFClient().GetWsContext()
+	if err != nil {
+		return err
+	}
+
+	if err := wc.SetEnv(env.Metadata.Name); err != nil {
 		return fn.NewE(err)
 	}
 

@@ -2,6 +2,7 @@ package initp
 
 import (
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/kloudlite/kl/domain/fileclient"
@@ -52,9 +53,26 @@ func handleInit() error {
 		}
 	}
 
+	fc, err := fileclient.New()
+	if err != nil {
+		return err
+	}
+
+	team, err := fc.GetDataContext().GetTeam()
+	if err != nil {
+		return err
+	}
+
 	newKlFile := fileclient.KLFileType{
 		Version:  "v1",
+		TeamName: team,
 		Packages: []string{"neovim", "git"},
+	}
+
+	wd, _ := os.Getwd()
+	configFolder, err := fileclient.GetKlPath()
+	if err == nil && path.Dir(configFolder) != wd {
+		return fn.Errorf("current working directory is not same as config folder, please change your working directory to %s", path.Dir(configFolder))
 	}
 
 	if err := newKlFile.Save(); err != nil {

@@ -1,6 +1,8 @@
 package fileclient
 
-import "github.com/kloudlite/kl/pkg/functions"
+import (
+	fn "github.com/kloudlite/kl/pkg/functions"
+)
 
 type fclient struct {
 	configPath string
@@ -35,18 +37,20 @@ type FileClient interface {
 	CurrentEnv() (string, error)
 
 	GetConfigPath() (string, error)
+	GetWsContext() (WsContext, error)
+}
+
+func (c *fclient) GetWsContext() (WsContext, error) {
+	return getNewWsContext()
 }
 
 func New() (FileClient, error) {
 	configPath, err := GetConfigFolder()
 	if err != nil {
-		return nil, functions.NewE(err)
+		return nil, fn.NewE(err)
 	}
 
-	sd, err := getSessionData()
-	if err != nil {
-		sd = &SessionData{}
-	}
+	sd, _ := getCtxData()
 
 	return &fclient{
 		configPath: configPath,
