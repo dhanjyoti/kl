@@ -1,7 +1,6 @@
 package apiclient
 
 import (
-	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
@@ -74,7 +73,7 @@ func (apic *apiClient) GetEnvironment(teamName, envName string) (*Env, error) {
 
 func (apic *apiClient) EnsureEnv() (string, error) {
 	CurrentEnv, err := apic.fc.CurrentEnv()
-	if err != nil && err.Error() != fileclient.NoEnvSelected.Error() {
+	if err != nil {
 		return "", functions.NewE(err)
 	} else if err == nil {
 		return CurrentEnv, nil

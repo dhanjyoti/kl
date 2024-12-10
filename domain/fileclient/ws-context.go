@@ -35,7 +35,7 @@ func (w wsContext) GetEnv() (string, error) {
 	}
 
 	if menv != w.EnvName {
-		return "", fn.Errorf("selected env is not same as current working directory, please change selected env using %s", text.Blue("kl use env"))
+		return "", fn.Errorf("selected env %s is not same as current working directory env %s, please change selected env using %s", text.Yellow(menv), text.Yellow(w.EnvName), text.Blue("kl use env"))
 	}
 
 	return w.EnvName, nil

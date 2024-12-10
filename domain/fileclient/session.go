@@ -126,7 +126,7 @@ func (s *sed) GetSession() (string, error) {
 
 func (s *sed) GetEnv() (string, error) {
 	if s.Env == "" {
-		return "", fn.Errorf("env not found")
+		return "", fn.Errorf("env not found, please run `kl use env` to select an environment")
 	}
 	return s.Env, nil
 }

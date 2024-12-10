@@ -1,12 +1,12 @@
 package status
 
 import (
-	"errors"
 	"fmt"
-	"github.com/kloudlite/kl/flags"
-	"github.com/kloudlite/kl/k3s"
 	"os"
 	"time"
+
+	"github.com/kloudlite/kl/flags"
+	"github.com/kloudlite/kl/k3s"
 
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
@@ -64,13 +64,6 @@ var Cmd = &cobra.Command{
 			selectedEnv := ""
 			if err == nil {
 				selectedEnv = e
-			} else if errors.Is(err, fileclient.NoEnvSelected) {
-				klFile, err := fc.GetKlFile()
-				if err != nil {
-					fn.PrintError(err)
-					return
-				}
-				selectedEnv = klFile.DefaultEnv
 			}
 
 			ev, err := apic.GetEnvironment(team, selectedEnv)
