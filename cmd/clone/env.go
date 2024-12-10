@@ -76,12 +76,7 @@ func envClone(cmd *cobra.Command, args []string) error {
 }
 
 func cloneEnv(apic apiclient.ApiClient, fc fileclient.FileClient, newEnvName string, clusterName string) (*apiclient.Env, error) {
-	sd, err := fc.GetSessionData()
-	if err != nil {
-		return nil, fn.NewE(err)
-	}
-
-	activeTeam, err := sd.GetWsTeam()
+	activeTeam, err := fc.GetWsTeam()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}

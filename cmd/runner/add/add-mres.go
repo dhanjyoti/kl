@@ -150,7 +150,7 @@ func init() {
 }
 
 func selectMresKey(apic apiclient.ApiClient, fc fileclient.FileClient, secretName string) (*string, error) {
-	selectedTeam, err := fc.GetTeam()
+	selectedTeam, err := fc.GetWsTeam()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}

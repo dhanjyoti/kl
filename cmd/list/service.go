@@ -36,7 +36,7 @@ func listServices(apic apiclient.ApiClient, cmd *cobra.Command, _ []string) erro
 		return functions.NewE(err)
 	}
 
-	currentTeamName, err := fc.GetTeam()
+	currentTeamName, err := fc.GetWsTeam()
 	if err != nil {
 		return functions.NewE(err)
 	}

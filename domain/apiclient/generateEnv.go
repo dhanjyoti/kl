@@ -47,12 +47,7 @@ type (
 func (apic *apiClient) GetLoadMaps() (map[string]string, MountMap, error) {
 	fc := apic.fc
 
-	sd, err := fc.GetSessionData()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	teamName, err := sd.GetWsTeam()
+	teamName, err := fc.GetWsTeam()
 	if err != nil {
 		return nil, nil, err
 	}

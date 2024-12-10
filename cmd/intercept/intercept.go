@@ -33,12 +33,7 @@ var Cmd = &cobra.Command{
 
 func startIntercept(apic apiclient.ApiClient) error {
 
-	sd, err := apic.GetFileClient().GetSessionData()
-	if err != nil {
-		return err
-	}
-
-	team, err := sd.GetWsTeam()
+	team, err := apic.GetFileClient().GetWsTeam()
 	if err != nil {
 		return err
 	}
