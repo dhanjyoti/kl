@@ -52,8 +52,6 @@ func pathExists(p string) bool {
 func NixShell(ctx context.Context, args ShellArgs) error {
 	mainenvs := os.Environ()
 
-	// ev := args.EnvVars
-
 	for i, v := range mainenvs {
 		if strings.HasPrefix(v, "PS1=") {
 			mainenvs[i] = fmt.Sprintf("PS1=(kl) %s", os.Getenv("PS1"))
@@ -68,7 +66,7 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 		return err
 	}
 
-	ev = append(ev, fmt.Sprintf("PATH=%s", path))
+	ev = append(ev, fmt.Sprintf("PATH=%s", strings.TrimSpace(path)))
 
 	libPaths := make([]string, 0, len(args.Libraries))
 	var includes []string
@@ -131,7 +129,7 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 		shell = "sh"
 	}
 
-	c := exec.Command(shell)
+	c := exec.Command("sh", "./abc.sh")
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	c.Stdin = os.Stdin

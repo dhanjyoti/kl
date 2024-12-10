@@ -38,6 +38,8 @@ type FileClient interface {
 
 	GetConfigPath() (string, error)
 	GetWsContext() (WsContext, error)
+
+	GetKlFileHash() ([]byte, error)
 }
 
 func (c *fclient) GetWsContext() (WsContext, error) {

@@ -10,13 +10,32 @@ import (
 	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
+type CacheKLConfig struct {
+	Hash    string
+	EnvVars map[string]string
+	Mounts  map[string]string
+}
+
 type wsContextData struct {
 	EnvName string `json:"envName"`
+
+	Cache *CacheKLConfig `json:"cache"`
+}
+
+func (w wsContext) GetCache() *CacheKLConfig {
+	return w.Cache
+}
+
+func (w wsContext) SetCache(cache *CacheKLConfig) error {
+	w.Cache = cache
+	return w.handler.Write()
 }
 
 type WsContext interface {
 	SetEnv(string) error
 	GetEnv() (string, error)
+	GetCache() *CacheKLConfig
+	SetCache(cache *CacheKLConfig) error
 }
 
 func (w wsContext) GetEnv() (string, error) {

@@ -1,6 +1,7 @@
 package fileclient
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"os"
@@ -188,9 +189,24 @@ func (c *fclient) GetKlFile() (*KLFileType, error) {
 			return nil, fn.Errorf("no kl.yml found, please run `kl init` to initialize kl.yml")
 		}
 
-		return nil, functions.NewE(err)
+		return nil, fn.NewE(err)
 	}
 	return klfile, nil
+}
+
+func (c *fclient) GetKlFileHash() ([]byte, error) {
+	filePath, err := assertConfigPath()
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+	hash := sha256.Sum256(b)
+
+	return hash[:], nil
 }
 
 func getKlFile() (*KLFileType, error) {
