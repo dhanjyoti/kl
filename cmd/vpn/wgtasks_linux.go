@@ -19,6 +19,7 @@ func connect(verbose bool, options ...fn.Option) error {
 
 			if !wg_vpn.IsSystemdReslov() {
 				wg_vpn.ResetDnsServers(ifName, verbose)
+				wg_vpn.ResetSearchDomain()
 			}
 		}
 
@@ -50,21 +51,13 @@ func disconnect(verbose bool) error {
 		return err
 	}
 
-	// data, err := client.GetExtraData()
-	// if err != nil {
-	// 	return err
-	// }
-	// data.VpnConnected = false
-	// if err := client.SaveExtraData(data); err != nil {
-	// 	return err
-	// }
-
 	if !wg_vpn.IsSystemdReslov() {
 		if err := wg_vpn.ResetDnsServers(ifName, verbose); err != nil {
 			return err
 		}
+
+		return wg_vpn.ResetSearchDomain()
 	}
 
-	// client.SetDeviceDns("")
 	return nil
 }

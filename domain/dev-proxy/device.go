@@ -23,9 +23,6 @@ func EnsureAppRunning() error {
 			return nil
 		}
 
-		fmt.Println(p.Status())
-		return nil
-
 		if runtime.GOOS != "windows" {
 			cmd := exec.Command("sudo", "echo", "")
 			cmd.Stdin = os.Stdin

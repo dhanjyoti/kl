@@ -84,6 +84,7 @@ func Configure(
 	if verbose {
 		fn.Log("[#] validating configuration")
 	}
+
 	if e := cfg.UnmarshalText(configuration); e != nil {
 		return e
 	}

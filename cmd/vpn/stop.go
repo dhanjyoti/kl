@@ -60,13 +60,6 @@ Example:
 			}
 		}
 
-		// if euid := os.Geteuid(); euid != 0 {
-		// 	fn.Log(
-		// 		text.Colored("make sure you are running command with sudo", 209),
-		// 	)
-		// 	return
-		// }
-
 		wgInterface, err := wgc.Show(&wgc.WgShowOptions{
 			Interface: "interfaces",
 		})

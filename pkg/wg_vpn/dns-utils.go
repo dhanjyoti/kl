@@ -1,8 +1,12 @@
 package wg_vpn
 
 import (
+	"fmt"
+	"io"
 	"net"
+	"os"
 
+	"github.com/Fa1k3n/resolvconf"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
@@ -41,7 +45,6 @@ func ResetDnsServers(devName string, verbose bool) error {
 }
 
 func SetDnsServers(dnsServers []net.IP, devName string, verbose bool) error {
-
 	warn := func(str ...interface{}) {
 		if verbose {
 			fn.Warn(str)
@@ -106,4 +109,88 @@ func SetDnsServers(dnsServers []net.IP, devName string, verbose bool) error {
 	}
 
 	return setDnsServers(dnsServers, devName, verbose)
+}
+
+func ResetSearchDomain() error {
+	bkpPath := "/etc/resolv.conf.kl-bkp"
+	resPath := "/etc/resolv.conf"
+
+	if _, err := os.Stat(bkpPath); err == nil {
+		if err := copyFile(bkpPath, resPath); err != nil {
+			return err
+		}
+		return os.Remove(bkpPath)
+	}
+	return nil
+}
+
+func SetSearchDomain(domain string) error {
+	// make reader for this file
+	bkpPath := "/etc/resolv.conf.kl-bkp"
+	resPath := "/etc/resolv.conf"
+
+	if _, err := os.Stat(bkpPath); os.IsNotExist(err) {
+		if err := copyFile(resPath, bkpPath); err != nil {
+			return err
+		}
+	}
+
+	reader, err := os.Open(resPath)
+	if err != nil {
+		return err
+	}
+
+	conf, err := resolvconf.ReadConf(reader)
+	if err != nil {
+		return err
+	}
+
+	f := conf.GetSearchDomains()
+
+	fmt.Println(f)
+
+	// Add a nameservers
+	conf.Add(resolvconf.NewSearchDomain("sample.svc.cluster.local"))
+
+	writer, err := os.Create("/etc/resolv.conf")
+	if err != nil {
+		return err
+	}
+
+	// Dump to stdout
+	if err := conf.Write(writer); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func copyFile(src, dst string) error {
+	// Open the source file
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	// Create the destination file
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	// Copy the contents from source to destination
+	_, err = io.Copy(destFile, sourceFile)
+	if err != nil {
+		return err
+	}
+
+	// Flush the contents to disk to ensure they are written
+	err = destFile.Sync()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

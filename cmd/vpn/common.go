@@ -52,15 +52,15 @@ func startConfiguration(verbose bool, options ...fn.Option) error {
 	if wg_vpn.IsSystemdReslov() {
 		if err := wg_vpn.ExecCmd(fmt.Sprintf("resolvectl domain %s %s", device.DeviceName, func() string {
 			// TODO: use real domain
-			if true {
-				// return fmt.Sprintf("%s.svc.cluster.local", device.EnvironmentName)
-				return ""
-			}
+			// return fmt.Sprintf("%s.svc.cluster.local", device.EnvironmentName)
+			return "sample.svc.cluster.local"
 
-			return "~."
+			// return "~."
 		}()), false); err != nil {
 			return err
 		}
+	} else {
+		return wg_vpn.SetSearchDomain("sample.svc.cluster.local")
 	}
 
 	return nil
