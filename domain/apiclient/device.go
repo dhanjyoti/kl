@@ -48,6 +48,37 @@ type DeviceList struct {
 	Edges Edges[Env] `json:"edges"`
 }
 
+func (apic *apiClient) EnsureDevice() (*fileclient.DeviceData, error) {
+	dctx := apic.GetFClient().GetDataContext()
+
+	dev, err := dctx.GetDevice()
+	if err == nil {
+		return dev, nil
+	}
+
+	st, err := dctx.GetTeam()
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	d, err := apic.CreateVpnForTeam(st)
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	dev = &fileclient.DeviceData{
+		WGconf:     d.WireguardConfig.Value,
+		IpAddress:  d.IPAddress,
+		DeviceName: d.Metadata.Name,
+	}
+
+	if err := dctx.SetDevice(*dev); err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	return dev, nil
+}
+
 func (apic *apiClient) GetVPNDevice(teamName string, devName string) (*Device, error) {
 	cookie, err := getCookie(fn.MakeOption("teamName", teamName))
 	if err != nil {

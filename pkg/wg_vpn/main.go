@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	// "github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/flags"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
@@ -196,8 +196,23 @@ func Configure(
 	}
 
 	if len(cfg.DNS) > 0 {
-		return fmt.Errorf("not implemented")
-		// return client.SetDeviceDns(cfg.DNS[0].To4().String())
+		fc, err := fileclient.New()
+		if err != nil {
+			return err
+		}
+
+		ed, err := fc.GetExtraData()
+		if err != nil {
+			return err
+		}
+
+		ed.SetBackupDns(func() []string {
+			resp := make([]string, len(cfg.DNS))
+			for i, v := range cfg.DNS {
+				resp[i] = v.To4().String()
+			}
+			return resp
+		}())
 	}
 
 	return nil

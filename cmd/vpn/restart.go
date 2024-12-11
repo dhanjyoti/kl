@@ -2,37 +2,26 @@ package vpn
 
 import (
 	"os"
+	"time"
 
 	"github.com/kloudlite/kl/domain/apiclient"
 	proxy "github.com/kloudlite/kl/domain/dev-proxy"
+
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/kloudlite/kl/pkg/wg_vpn/wgc"
 	"github.com/spf13/cobra"
 )
 
-var stopCmd = &cobra.Command{
-	Use:   "stop",
-	Short: "stop vpn device",
-	Long: `This command let you stop running vpn device.
-Example:
-  # stop vpn device
-  sudo kl vpn stop
-	`,
+var restartCmd = &cobra.Command{
+	Use:   "restart",
+	Short: "restart vpn device",
 	Run: func(cmd *cobra.Command, _ []string) {
 
 		verbose := fn.ParseBoolFlag(cmd, "verbose")
+		if os.Getenv("KL_APP") != "true" {
 
-		// if runtime.GOOS == constants.RuntimeWindows {
-		// 	if err := disconnect(verbose); err != nil {
-		// 		fn.Notify("Error:", err.Error())
-		// 		fn.PrintError(err)
-		// 	}
-		// 	return
-		// }
-
-		if euid := os.Geteuid(); euid != 0 {
-			if os.Getenv("KL_APP") != "true" {
+			if euid := os.Geteuid(); euid != 0 {
 				if err := func() error {
 
 					if err := proxy.EnsureAppRunning(); err != nil {
@@ -44,7 +33,7 @@ Example:
 						return err
 					}
 
-					out, err := p.Stop()
+					out, err := p.Restart()
 					if err != nil {
 						return err
 					}
@@ -60,13 +49,6 @@ Example:
 			}
 		}
 
-		// if euid := os.Geteuid(); euid != 0 {
-		// 	fn.Log(
-		// 		text.Colored("make sure you are running command with sudo", 209),
-		// 	)
-		// 	return
-		// }
-
 		wgInterface, err := wgc.Show(&wgc.WgShowOptions{
 			Interface: "interfaces",
 		})
@@ -77,15 +59,29 @@ Example:
 		}
 
 		if len(wgInterface) == 0 {
-			fn.Log(text.Colored("[#] no device connected yet", 209))
-			return
+			fn.Log(text.Colored("[#] no devices connected yet", 209))
+		} else {
+			if err := disconnect(verbose); err != nil {
+				fn.PrintError(err)
+				return
+			}
+			fn.Log("[#] disconnected")
 		}
+		fn.Log("[#] connecting")
+		time.Sleep(time.Second * 2)
 
-		err = disconnect(verbose)
-		if err != nil {
+		if err := startConnecting(verbose); err != nil {
 			fn.PrintError(err)
 			return
 		}
+
+		fn.Log("[#] connected")
+		fn.Log("[#] reconnection done")
+
+		// if _, err = wgc.Show(nil); err != nil {
+		// 	fn.PrintError(err)
+		// 	return
+		// }
 
 		apic, err := apiclient.New()
 		if err != nil {
@@ -95,17 +91,16 @@ Example:
 
 		dev, err := apic.EnsureDevice()
 		if err != nil {
-			fn.Logf(text.Bold("\n [#] disconnected device"))
-			fn.PrintError(err)
 			return
 		}
 
-		fn.Logf(text.Bold("\n[#] disconnected device %s"), text.Blue(dev.DeviceName))
+		fn.Log(text.Bold(text.Green("\n[#]Selected Device: ")),
+			text.Red(dev.DeviceName),
+		)
 	},
 }
 
 func init() {
-	stopCmd.Flags().BoolP("verbose", "v", false, "run in debug mode")
-
-	stopCmd.Aliases = append(stopCmd.Aliases, "disconnect")
+	restartCmd.Flags().BoolP("verbose", "v", false, "run in debug mode")
+	restartCmd.Aliases = append(restartCmd.Aliases, "reconnect")
 }

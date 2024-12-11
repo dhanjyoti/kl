@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"runtime"
 
+	"github.com/kloudlite/kl/cmd/app"
 	"github.com/kloudlite/kl/cmd/auth"
 	"github.com/kloudlite/kl/cmd/get"
 	"github.com/kloudlite/kl/cmd/initp"
@@ -20,6 +21,7 @@ import (
 	set_base_url "github.com/kloudlite/kl/cmd/set-base-url"
 	"github.com/kloudlite/kl/cmd/status"
 	"github.com/kloudlite/kl/cmd/use"
+	"github.com/kloudlite/kl/cmd/vpn"
 	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/flags"
 	"github.com/spf13/cobra"
@@ -43,6 +45,8 @@ func init() {
 	rootCmd.AddCommand(use.Cmd)
 	rootCmd.AddCommand(list.Cmd)
 	rootCmd.AddCommand(get.Cmd)
+	rootCmd.AddCommand(vpn.Cmd)
+	rootCmd.AddCommand(app.Cmd)
 
 	if runtime.GOOS == constants.RuntimeWindows {
 		return

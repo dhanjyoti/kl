@@ -8,15 +8,16 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
 	uuid "github.com/nu7hatch/gouuid"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	"github.com/adrg/xdg"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"github.com/kloudlite/kl/pkg/wg_vpn"
 
 	"sigs.k8s.io/yaml"
 )
@@ -53,6 +54,16 @@ type ExtraData struct {
 	BaseUrl         string    `json:"baseUrl"`
 	DnsHostSuffix   string    `json:"dnsHostSuffix"`
 	LastUpdateCheck time.Time `json:"lastUpdateCheck"`
+	BackUpDns       []string  `json:"backupDns"`
+}
+
+func (ed *ExtraData) SetBackupDns(dns []string) error {
+	ed.BackUpDns = dns
+	return ed.Save()
+}
+
+func (ed *ExtraData) GetBackupDns() []string {
+	return ed.BackUpDns
 }
 
 func (ed *ExtraData) Save() error {
@@ -135,10 +146,28 @@ func GetConfigFolder() (configFolder string, err error) {
 	}
 
 	// ensuring user permission on created dir
-	if usr, ok := os.LookupEnv("SUDO_USER"); ok {
-		if err = fn.ExecCmd(
-			fmt.Sprintf("chown %s %s", usr, configPath), nil, false,
-		); err != nil {
+	if _, ok := os.LookupEnv("SUDO_USER"); ok {
+		uidstr, ok := os.LookupEnv("SUDO_UID")
+		if !ok {
+			return "", functions.Error("failed to get sudo uid")
+		}
+
+		gidstr, ok := os.LookupEnv("SUDO_GID")
+		if !ok {
+			return "", functions.Error("failed to get sudo gid")
+		}
+
+		uid, err := strconv.Atoi(uidstr)
+		if err != nil {
+			return "", functions.NewE(err, "failed to get sudo uid")
+		}
+
+		gid, err := strconv.Atoi(gidstr)
+		if err != nil {
+			return "", functions.NewE(err, "failed to get sudo gid")
+		}
+
+		if err := os.Chown(configPath, uid, gid); err != nil {
 			return "", functions.NewE(err, "failed to change user permission on config folder")
 		}
 	}
@@ -265,15 +294,15 @@ func (fc *fclient) GetWGConfig() (*WGConfig, error) {
 		if err != nil {
 			return nil, fn.NewE(err, "failed to generate uuid")
 		}
-		wgProxyPrivateKey, wgProxyPublicKey, err := wg_vpn.GenerateWireGuardKeys()
+		wgProxyPrivateKey, wgProxyPublicKey, err := GenerateWireGuardKeys()
 		if err != nil {
 			return nil, fn.NewE(err, "failed to generate wg keys")
 		}
-		hostPrivateKey, hostPublicKey, err := wg_vpn.GenerateWireGuardKeys()
+		hostPrivateKey, hostPublicKey, err := GenerateWireGuardKeys()
 		if err != nil {
 			return nil, fn.NewE(err, "failed to generate wg keys")
 		}
-		workSpacePrivateKey, workSpacePublicKey, err := wg_vpn.GenerateWireGuardKeys()
+		workSpacePrivateKey, workSpacePublicKey, err := GenerateWireGuardKeys()
 		if err != nil {
 			return nil, fn.NewE(err, "failed to generate wg keys")
 		}
@@ -398,4 +427,14 @@ func readFile(name string) ([]byte, error) {
 	}
 
 	return file, nil
+}
+
+func GenerateWireGuardKeys() (wgtypes.Key, wgtypes.Key, error) {
+	privateKey, err := wgtypes.GeneratePrivateKey()
+	if err != nil {
+		return wgtypes.Key{}, wgtypes.Key{}, fn.Errorf("failed to generate private key: %w", err)
+	}
+	publicKey := privateKey.PublicKey()
+
+	return privateKey, publicKey, nil
 }

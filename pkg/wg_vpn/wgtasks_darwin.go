@@ -14,7 +14,7 @@ import (
 
 	"github.com/kloudlite/kl/constants"
 
-	// "github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/domain/client"
 	"github.com/kloudlite/kl/flags"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -191,9 +191,7 @@ func getDnsSearchDomain(networkService string) ([]string, error) {
 		return nil, err
 	}
 	domains := strings.Split(strings.TrimSpace(string(d)), "\n")
-	// TODO: create no existing search domain error
-	NoExistingSearchDomainError := "no existing search domain found"
-	if domains[0] == NoExistingSearchDomainError {
+	if domains[0] == constants.NoExistingSearchDomainError {
 		return domains, errors.New("no existing search domain found")
 	}
 	return domains, nil
@@ -272,11 +270,10 @@ func _SetDnsSearch() error {
 }
 
 func _UnsetDnsSearch() error {
-	return fmt.Errorf("not implemented")
-	// data, err := client.GetExtraData()
-	// if err != nil {
-	// 	return err
-	// }
+	data, err := client.GetExtraData()
+	if err != nil {
+		return err
+	}
 
 	// if data.DnsAdded {
 	// 	ips := make([]net.IP, 0)
@@ -290,9 +287,9 @@ func _UnsetDnsSearch() error {
 	// data.DnsAdded = false
 	// data.DnsValues = nil
 
-	// if err := client.SaveExtraData(data); err != nil {
-	// 	return err
-	// }
+	if err := client.SaveExtraData(data); err != nil {
+		return err
+	}
 
 	// if data.SearchDomainAdded {
 	// 	searchDomains, err := getDnsSearchDomain(constants.NetworkService)

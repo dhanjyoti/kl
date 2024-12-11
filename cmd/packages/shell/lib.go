@@ -72,8 +72,6 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 	var includes []string
 
 	for _, lib := range args.Libraries {
-		// nix eval $package --raw
-		// nix-store --query --references $package
 		c := exec.CommandContext(ctx, "nix", "eval", lib, "--raw")
 		b, err := c.CombinedOutput()
 		if err != nil {
@@ -94,17 +92,16 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 			return err
 		}
 		lines := strings.Split(string(b2), "\n")
-		// fmt.Printf("b2: %v %d\n", lines, len(lines))
 
 		for _, line := range lines {
 			if len(strings.TrimSpace(line)) > 0 && !strings.Contains(line, "-glibc-") {
-				// if len(strings.TrimSpace(line)) > 0 {
 				if pathExists(line + "/lib") {
 					libPaths = append(libPaths, line+"/lib")
 				}
 				// if pathExists(line + "/lib64") {
 				// 	libPaths = append(libPaths, line+"/lib64")
 				// }
+
 				// if pathExists(line + "/include") {
 				// 	includes = append(includes, line+"/include")
 				// }
@@ -114,10 +111,6 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 
 	libPaths = createSet(libPaths)
 	includes = createSet(includes)
-
-	// for i := range libPaths {
-	// 	fmt.Printf("%s\n", libPaths[i])
-	// }
 
 	ev = append(ev, fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", strings.Join(libPaths, ":"), os.Getenv("LD_LIBRARY_PATH")))
 	ev = append(ev, fmt.Sprintf("CPATH=%s:%s", strings.Join(includes, ":"), os.Getenv("CPATH")))

@@ -34,7 +34,10 @@ type ApiClient interface {
 
 	ListEnvs(teamName string) ([]Env, error)
 	GetEnvironment(teamName, envName string) (*Env, error)
+
 	EnsureEnv() (string, error)
+	EnsureDevice() (*fileclient.DeviceData, error)
+
 	CloneEnv(teamName, envName, newEnvName, clusterName string) (*Env, error)
 	UpdateEnvironment(teamName string, env *Env, isSuspend bool) error
 	CheckEnvName(teamName, envName string) (bool, error)
