@@ -17,7 +17,7 @@ const (
 	ifName string = "utun2464"
 )
 
-func startConfiguration(verbose bool, options ...fn.Option) error {
+func startConfiguration(verbose bool, _ ...fn.Option) error {
 	apic, err := apiclient.New()
 	if err != nil {
 		return err
@@ -53,14 +53,27 @@ func startConfiguration(verbose bool, options ...fn.Option) error {
 		if err := wg_vpn.ExecCmd(fmt.Sprintf("resolvectl domain %s %s", device.DeviceName, func() string {
 			// TODO: use real domain
 			// return fmt.Sprintf("%s.svc.cluster.local", device.EnvironmentName)
-			return "sample.svc.cluster.local"
+			// e, err := apic.GetFClient().GetExtraData()
+			// if err != nil {
+			// 	return err
+			// }
+			s, err := apic.GetFClient().GetDataContext().GetSearchDomain()
+			if err != nil {
+				return "~."
+			}
 
-			// return "~."
+			return s
+
 		}()), false); err != nil {
 			return err
 		}
 	} else {
-		return wg_vpn.SetSearchDomain("sample.svc.cluster.local")
+		s, err := apic.GetFClient().GetDataContext().GetSearchDomain()
+		if err != nil {
+			return err
+		}
+
+		return wg_vpn.SetSearchDomain(s)
 	}
 
 	return nil

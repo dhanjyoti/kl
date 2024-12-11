@@ -10,7 +10,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
 
 	uuid "github.com/nu7hatch/gouuid"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
@@ -48,31 +47,6 @@ type WGConfig struct {
 	Host      Keys   `json:"host"`
 	Workspace Keys   `json:"workspace"`
 	Proxy     Keys   `json:"wg-proxy"`
-}
-
-type ExtraData struct {
-	BaseUrl         string    `json:"baseUrl"`
-	DnsHostSuffix   string    `json:"dnsHostSuffix"`
-	LastUpdateCheck time.Time `json:"lastUpdateCheck"`
-	BackUpDns       []string  `json:"backupDns"`
-}
-
-func (ed *ExtraData) SetBackupDns(dns []string) error {
-	ed.BackUpDns = dns
-	return ed.Save()
-}
-
-func (ed *ExtraData) GetBackupDns() []string {
-	return ed.BackUpDns
-}
-
-func (ed *ExtraData) Save() error {
-	file, err := yaml.Marshal(ed)
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	return writeOnUserScope(ExtraDataFileName, file)
 }
 
 type Port struct {
@@ -181,13 +155,7 @@ func (fc *fclient) SaveBaseURL(url string) error {
 		return functions.NewE(err)
 	}
 
-	extraData.BaseUrl = url
-	file, err := yaml.Marshal(extraData)
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	return writeOnUserScope(ExtraDataFileName, file)
+	return extraData.SetBaseUrl(url)
 }
 
 func (fc *fclient) GetBaseURL() (string, error) {
@@ -196,36 +164,7 @@ func (fc *fclient) GetBaseURL() (string, error) {
 		return "", functions.NewE(err)
 	}
 
-	return extraData.BaseUrl, nil
-}
-
-func (fc *fclient) GetExtraData() (*ExtraData, error) {
-	return fc.getExtraData()
-}
-
-func (fc *fclient) getExtraData() (*ExtraData, error) {
-	file, err := readFile(ExtraDataFileName)
-	extraData := ExtraData{}
-	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			b, err := yaml.Marshal(extraData)
-			if err != nil {
-				return nil, functions.NewE(err, "failed to marshal extra data")
-			}
-
-			if err := writeOnUserScope(ExtraDataFileName, b); err != nil {
-				return nil, functions.NewE(err, "failed to write extra data")
-			}
-		}
-
-		return &extraData, nil
-	}
-
-	if err = yaml.Unmarshal(file, &extraData); err != nil {
-		return nil, functions.NewE(err, "failed to unmarshal extra data")
-	}
-
-	return &extraData, nil
+	return extraData.GetBaseUrl(), nil
 }
 
 func (fc *fclient) SetDevice(device *DeviceData) error {

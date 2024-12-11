@@ -24,6 +24,9 @@ type Session interface {
 	SetEnv(env string) error
 
 	Clear() error
+
+	GetSearchDomain() (string, error)
+	SetSearchDomain(domain string) error
 }
 
 func (c *fclient) GetDataContext() Session {
@@ -43,9 +46,10 @@ type EnvData struct {
 }
 
 type SessionData struct {
-	Session string `json:"session"`
-	Team    string `json:"team,omitempty"`
-	Env     string `json:"env,omitempty"`
+	Session      string `json:"session"`
+	Team         string `json:"team,omitempty"`
+	Env          string `json:"env,omitempty"`
+	SearchDomain string `json:"searchDomain,omitempty"`
 
 	TeamsData map[string]*DeviceData `json:"teamsData,omitempty"`
 }
@@ -58,6 +62,19 @@ type sed struct {
 func (c *sed) Clear() error {
 	c.SessionData = &SessionData{}
 	return c.handler.Write()
+}
+
+func (s *sed) GetSearchDomain() (string, error) {
+	if s.SearchDomain == "" {
+		return "", fn.Errorf("search domain not found")
+	}
+
+	return s.SearchDomain, nil
+}
+
+func (s *sed) SetSearchDomain(domain string) error {
+	s.SearchDomain = domain
+	return s.handler.Write()
 }
 
 func (s *sed) SetDevice(dev DeviceData) error {

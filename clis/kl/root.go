@@ -84,7 +84,7 @@ func versionCheck() {
 
 	data, err := fc.GetExtraData()
 	if err == nil {
-		if time.Since(data.LastUpdateCheck).Hours() > 12 {
+		if time.Since(data.GetLastUpdatedCheck()).Hours() > 12 {
 			u := updater.NewUpdater()
 			available, err := u.CheckForUpdates()
 			if err != nil {
@@ -104,8 +104,7 @@ func versionCheck() {
 				}
 
 				fn.Log(*s)
-				data.LastUpdateCheck = time.Now()
-				if err := data.Save(); err != nil {
+				if err := data.SetLastUpdatedCheck(time.Now()); err != nil {
 					fn.Log(text.Yellow("Failed to save extra data"))
 				}
 			}

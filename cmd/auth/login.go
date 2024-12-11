@@ -49,8 +49,8 @@ var loginCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		extraData.DnsHostSuffix = HostDNSSuffix
-		if err := extraData.Save(); err != nil {
+
+		if err := extraData.SetDnsHostSuffix(HostDNSSuffix); err != nil {
 			fn.PrintError(err)
 		}
 

@@ -13,7 +13,7 @@ type FileClient interface {
 	SaveBaseURL(url string) error
 	GetBaseURL() (string, error)
 
-	GetExtraData() (*ExtraData, error)
+	GetExtraData() (Extra, error)
 
 	GetHostWgConfig() (string, error)
 	GetWGConfig() (*WGConfig, error)

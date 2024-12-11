@@ -69,6 +69,8 @@ func switchEnv(*cobra.Command, []string) error {
 		return fn.NewE(err)
 	}
 
+	dctx := apic.GetFClient().GetDataContext()
+
 	wc, err := apic.GetFClient().GetWsContext()
 	if err != nil {
 		return err
@@ -76,6 +78,26 @@ func switchEnv(*cobra.Command, []string) error {
 
 	if err := wc.SetEnv(env.Metadata.Name); err != nil {
 		return fn.NewE(err)
+	}
+
+	ed, err := apic.GetFClient().GetExtraData()
+	if err != nil {
+		return err
+	}
+
+	dnsHostSuffix := ed.GetDnsHostSuffix()
+
+	if dnsHostSuffix != "" {
+		env, err := dctx.GetEnv()
+		if err != nil {
+			return err
+		}
+		team, err := dctx.GetTeam()
+		if err != nil {
+			return err
+		}
+
+		dctx.SetSearchDomain(fmt.Sprintf("%s.%s.%s", env, team, dnsHostSuffix))
 	}
 
 	if klFile.DefaultEnv == "" {
