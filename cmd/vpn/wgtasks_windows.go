@@ -8,39 +8,37 @@ import (
 	"os/exec"
 	"path"
 
-	"github.com/kloudlite/kl/domain/server"
-
+	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
-
-	"github.com/kloudlite/kl/domain/client"
 )
 
 func connect(verbose bool, options ...fn.Option) error {
-
-	client.SetLoading(true)
-
-	defer func() {
-		client.SetLoading(false)
-	}()
+	return fmt.Errorf("not supported for windows")
 
 	if err := func() error {
 
-		f, err := client.GetConfigFolder()
+		f, err := fileclient.GetConfigFolder()
 		if err != nil {
 			return err
 		}
 
-		device, err := server.EnsureDevice(options...)
+		apic, err := apiclient.New()
 		if err != nil {
 			return err
 		}
 
-		if device.WireguardConfig.Value == "" {
+		device, err := apic.EnsureDevice()
+		if err != nil {
+			return err
+		}
+
+		if device.WGconf == "" {
 			return errors.New("no wireguard config found, please try again in few seconds")
 		}
 
-		configuration, err := base64.StdEncoding.DecodeString(device.WireguardConfig.Value)
+		configuration, err := base64.StdEncoding.DecodeString(device.WGconf)
 		if err != nil {
 			return err
 		}
@@ -50,10 +48,6 @@ func connect(verbose bool, options ...fn.Option) error {
 		if err := os.WriteFile(pth, configuration, os.ModePerm); err != nil {
 			return err
 		}
-
-		// defer func() {
-		// 	os.RemoveAll(td)
-		// }()
 
 		if _, err := exec.LookPath("wireguard"); err != nil {
 			return fmt.Errorf("can't find wireguard in path, please ensure it's installed. installation link %s", text.Blue("https://www.wireguard.com/install"))
@@ -68,29 +62,12 @@ func connect(verbose bool, options ...fn.Option) error {
 		return err
 	}
 
-	data, err := client.GetExtraData()
-	if err != nil {
-		return err
-	}
-	data.VpnConnected = true
-	if err := client.SaveExtraData(data); err != nil {
-		return err
-	}
 	return nil
 }
 
 func disconnect(verbose bool) error {
 
 	if _, err := fn.WinSudoExec(fmt.Sprintf("%s /uninstalltunnelservice %s", "wireguard", ifName), map[string]string{"PATH": os.Getenv("PATH")}); err != nil {
-		return err
-	}
-
-	data, err := client.GetExtraData()
-	if err != nil {
-		return err
-	}
-	data.VpnConnected = false
-	if err := client.SaveExtraData(data); err != nil {
 		return err
 	}
 

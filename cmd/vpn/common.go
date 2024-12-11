@@ -10,7 +10,6 @@ import (
 	"github.com/kloudlite/kl/domain/apiclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/wg_vpn"
-	wg_svc "github.com/kloudlite/kl/pkg/wg_vpn/wg_service"
 )
 
 const (
@@ -38,11 +37,7 @@ func startConfiguration(verbose bool, _ ...fn.Option) error {
 	}
 
 	if runtime.GOOS == constants.RuntimeWindows {
-		if err := wg_svc.StartVpn(configuration); err != nil {
-			return err
-		}
-
-		return nil
+		return fmt.Errorf("Not supported on Windows")
 	}
 
 	if err := wg_vpn.Configure(configuration, ifName, verbose); err != nil {
@@ -51,19 +46,12 @@ func startConfiguration(verbose bool, _ ...fn.Option) error {
 
 	if wg_vpn.IsSystemdReslov() {
 		if err := wg_vpn.ExecCmd(fmt.Sprintf("resolvectl domain %s %s", device.DeviceName, func() string {
-			// TODO: use real domain
-			// return fmt.Sprintf("%s.svc.cluster.local", device.EnvironmentName)
-			// e, err := apic.GetFClient().GetExtraData()
-			// if err != nil {
-			// 	return err
-			// }
 			s, err := apic.GetFClient().GetDataContext().GetSearchDomain()
 			if err != nil {
 				return "~."
 			}
 
 			return s
-
 		}()), false); err != nil {
 			return err
 		}

@@ -14,7 +14,6 @@ import (
 
 	"github.com/kloudlite/kl/constants"
 
-	"github.com/kloudlite/kl/domain/client"
 	"github.com/kloudlite/kl/flags"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -190,8 +189,11 @@ func getDnsSearchDomain(networkService string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	NoExistingSearchDomainError := "There aren't any Search Domains set on Wi-Fi."
+
 	domains := strings.Split(strings.TrimSpace(string(d)), "\n")
-	if domains[0] == constants.NoExistingSearchDomainError {
+	if domains[0] == NoExistingSearchDomainError {
 		return domains, errors.New("no existing search domain found")
 	}
 	return domains, nil
@@ -270,10 +272,6 @@ func _SetDnsSearch() error {
 }
 
 func _UnsetDnsSearch() error {
-	data, err := client.GetExtraData()
-	if err != nil {
-		return err
-	}
 
 	// if data.DnsAdded {
 	// 	ips := make([]net.IP, 0)
@@ -286,10 +284,6 @@ func _UnsetDnsSearch() error {
 	// }
 	// data.DnsAdded = false
 	// data.DnsValues = nil
-
-	if err := client.SaveExtraData(data); err != nil {
-		return err
-	}
 
 	// if data.SearchDomainAdded {
 	// 	searchDomains, err := getDnsSearchDomain(constants.NetworkService)
