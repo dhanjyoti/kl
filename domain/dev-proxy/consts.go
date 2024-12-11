@@ -1,5 +1,5 @@
 package proxy
 
 const (
-	AppPort = 8080
+	AppPort = 55678
 )
