@@ -129,7 +129,7 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 		shell = "sh"
 	}
 
-	c := exec.Command("sh", "./abc.sh")
+	c := exec.Command(shell)
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	c.Stdin = os.Stdin
